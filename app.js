@@ -1555,20 +1555,40 @@ function populateSubjectFilter(select) {
   });
 }
 
-document.querySelectorAll(".nav-button").forEach((button) => {
-  button.addEventListener("click", () => {
-    const view = button.dataset.view;
-    document.querySelectorAll(".nav-button").forEach((item) => {
-      const active = item === button;
-      item.classList.toggle("is-active", active);
-      item.setAttribute("aria-pressed", String(active));
-    });
-    document.querySelectorAll("[data-view-panel]").forEach((panel) => {
-      panel.hidden = panel.dataset.viewPanel !== view;
-    });
-    window.scrollTo({ top: 0, behavior: "auto" });
-    if (view === "weeks") window.requestAnimationFrame(() => scrollToCurrentWeek("smooth"));
+// Cada pestaña tiene su dirección (#/entregas…). Va detrás de "#" porque GitHub Pages
+// solo sirve archivos: una ruta como /entregas daría 404.
+const VIEW_ROUTES = {
+  weeks: "semanas",
+  deadlines: "entregas",
+  progress: "progreso",
+  curriculum: "temario",
+  guide: "como-usar",
+};
+
+function getViewFromUrl() {
+  const match = window.location.hash.match(/^#\/([a-z-]+)/);
+  return Object.keys(VIEW_ROUTES).find((view) => VIEW_ROUTES[view] === match?.[1]) || null;
+}
+
+function showView(view, { updateUrl = true, scroll = "smooth" } = {}) {
+  if (!VIEW_ROUTES[view]) return;
+  document.querySelectorAll(".nav-button").forEach((item) => {
+    const active = item.dataset.view === view;
+    item.classList.toggle("is-active", active);
+    item.setAttribute("aria-pressed", String(active));
   });
+  document.querySelectorAll("[data-view-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.viewPanel !== view;
+  });
+  if (updateUrl && getViewFromUrl() !== view) {
+    window.history.pushState(null, "", `#/${VIEW_ROUTES[view]}`);
+  }
+  window.scrollTo({ top: 0, behavior: "auto" });
+  if (view === "weeks") window.requestAnimationFrame(() => scrollToCurrentWeek(scroll));
+}
+
+document.querySelectorAll(".nav-button").forEach((button) => {
+  button.addEventListener("click", () => showView(button.dataset.view));
 });
 
 document.querySelectorAll("[data-go-view]").forEach((button) => {
@@ -1655,6 +1675,11 @@ window.addEventListener("storage", (event) => {
 });
 
 window.addEventListener("hashchange", () => {
+  const routedView = getViewFromUrl();
+  if (routedView) {
+    showView(routedView, { updateUrl: false });
+    return;
+  }
   const linkedState = loadStateFromUrl();
   if (!linkedState) return;
   clearStateFromUrl();
@@ -1791,7 +1816,9 @@ populateSubjectFilter(deadlinesSubjectFilter);
 renderAll();
 registerProgressTools();
 announceUrlStateImport();
-window.requestAnimationFrame(() => scrollToCurrentWeek("auto"));
+const initialView = getViewFromUrl() || "weeks";
+if (initialView === "weeks") window.requestAnimationFrame(() => scrollToCurrentWeek("auto"));
+else showView(initialView, { updateUrl: false });
 window.setInterval(refreshCurrentWeek, 60 * 1000);
 window.addEventListener("focus", refreshCurrentWeek);
 document.addEventListener("visibilitychange", () => {

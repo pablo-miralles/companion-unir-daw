@@ -1627,11 +1627,6 @@ h1 {
 
 /* ───────── Cómo usar ───────── */
 
-.guide-article {
-  max-width: 760px;
-  margin: 0 auto;
-}
-
 .guide-header {
   margin-bottom: 40px;
 }
