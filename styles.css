@@ -1115,6 +1115,41 @@ h1 {
   box-shadow: var(--shadow-sm);
 }
 
+.progress-lead {
+  max-width: 640px;
+  margin: -12px 0 24px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.progress-save-section {
+  margin-top: 44px;
+}
+
+.progress-save-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.progress-save-heading h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.progress-save-section > h2 {
+  margin-bottom: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
 .progress-toolbar {
   display: flex;
   justify-content: flex-end;
