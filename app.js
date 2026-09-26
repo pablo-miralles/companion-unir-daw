@@ -1193,7 +1193,18 @@ function beginCounterTotalEdit(valueElement) {
 }
 
 function scrollToCurrentWeek(behavior = "smooth") {
-  document.querySelector("#semana-actual")?.scrollIntoView({ behavior, block: "center" });
+  const currentWeekElement = document.querySelector("#semana-actual");
+  if (!currentWeekElement) return;
+
+  const headerHeight = document.querySelector(".site-header")?.getBoundingClientRect().height || 0;
+  const breathingRoom = 16;
+  const targetTop =
+    window.scrollY + currentWeekElement.getBoundingClientRect().top - headerHeight - breathingRoom;
+
+  window.scrollTo({
+    top: Math.max(0, targetTop),
+    behavior,
+  });
 }
 
 function refreshCurrentWeek() {
