@@ -340,7 +340,7 @@ h1 {
   grid-template-columns: 96px minmax(0, 1fr) auto;
   align-items: stretch;
   overflow: hidden;
-  width: min(1080px, calc(100% - 32px));
+  width: min(640px, calc(100% - 32px));
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
