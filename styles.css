@@ -762,8 +762,28 @@ h1 {
   color: #fff;
 }
 
-.week-subject.is-studied .study-copy ul {
-  color: var(--muted);
+.week-subject.is-studied {
+  background: #fafbfc;
+}
+
+.week-subject.is-studied .subject-label,
+.week-subject.is-studied .study-copy,
+.week-subject.is-studied .material-link {
+  opacity: .5;
+  transition: opacity 160ms ease;
+}
+
+.week-subject.is-studied:hover .subject-label,
+.week-subject.is-studied:hover .study-copy,
+.week-subject.is-studied:hover .material-link {
+  opacity: .85;
+}
+
+.week-subject.is-studied .study-copy h3::before {
+  margin-right: 7px;
+  color: var(--subject, var(--green));
+  content: "✓";
+  font-weight: 800;
 }
 
 .topic-status-note {

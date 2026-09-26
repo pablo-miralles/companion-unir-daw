@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-26" />
+    <link rel="stylesheet" href="styles.css?v=20260926-27" />
   </head>
   <body>
     <header class="site-header">
@@ -127,7 +127,7 @@
         <div id="progressSummary" class="progress-summary"></div>
         <p class="progress-legend" aria-hidden="true">
           <span><i></i>Pendiente</span>
-          <span><i class="is-progress"></i>En progreso: has marcado alguna semana del tema</span>
+          <span><i class="is-progress"></i>En progreso: has estudiado alguna semana del tema</span>
           <span><i class="is-complete"></i>Completado: pulsa el número cuando lo termines</span>
         </p>
         <div id="progressList" class="progress-list"></div>
@@ -186,10 +186,21 @@
       </form>
     </dialog>
 
+    <dialog id="completeWeeksDialog" class="dialog">
+      <form method="dialog" class="dialog-panel">
+        <h2 id="completeWeeksTitle">Tema completado</h2>
+        <p id="completeWeeksText"></p>
+        <div class="dialog-actions">
+          <button value="skip" class="button secondary">Solo el tema</button>
+          <button value="mark" class="button primary">Sí, marcar semanas</button>
+        </div>
+      </form>
+    </dialog>
+
     <script src="curriculum.js"></script>
     <script src="campus-links.js"></script>
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
-    <script src="app.js?v=20260926-22"></script>
+    <script src="app.js?v=20260926-23"></script>
   </body>
 </html>

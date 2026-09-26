@@ -37,6 +37,8 @@ const shareState = document.querySelector("#shareState");
 const copyProgressButton = document.querySelector("#copyProgressButton");
 const persistenceHint = document.querySelector("#persistenceHint");
 const resetDialog = document.querySelector("#resetDialog");
+const completeWeeksDialog = document.querySelector("#completeWeeksDialog");
+let pendingWeeksCompletion = null;
 
 let saveTimer = null;
 let copyFeedbackTimer = null;
@@ -651,14 +653,14 @@ function createWeekSubject({ subject, week, heading, subtopics, material, schedu
   weekToggle.setAttribute("aria-pressed", String(studied));
   weekToggle.title = studied
     ? "Desmarcar esta semana"
-    : "Marca que has estudiado esta semana. El tema no se da por completado hasta que lo marques en Progreso o Temario.";
+    : "Marca que has estudiado esta parte. El tema no se da por completado hasta que lo marques en Progreso o Temario.";
   weekToggle.setAttribute("aria-label", `Semana ${week} de ${subject.name} estudiada`);
   const box = document.createElement("span");
   box.className = "week-check-box";
   box.setAttribute("aria-hidden", "true");
   box.textContent = "✓";
   const text = document.createElement("span");
-  text.textContent = studied ? "Estudiada" : "Marcar semana";
+  text.textContent = studied ? "Estudiado" : "¿Estudiado?";
   weekToggle.append(box, text);
   actions.append(weekToggle);
   row.append(label, copy, actions);
@@ -1207,11 +1209,49 @@ function normalizeText(value) {
   return value.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
+function getTopicWeeks(subjectId, topicNumber) {
+  return Object.keys(WEEKLY_STUDY[subjectId] || {})
+    .map(Number)
+    .filter((week) => getStudyTopicNumber(subjectId, week) === topicNumber)
+    .sort((a, b) => a - b);
+}
+
 function toggleTopic(subjectId, topicNumber) {
   const subjectState = state[subjectId];
   const index = topicNumber - 1;
   if (!subjectState || index < 0 || index >= subjectState.topics.length) return;
   subjectState.topics[index] = !subjectState.topics[index];
+  saveState();
+  renderAll();
+  if (subjectState.topics[index]) offerToMarkTopicWeeks(subjectId, topicNumber);
+}
+
+function offerToMarkTopicWeeks(subjectId, topicNumber) {
+  const pendingWeeks = getTopicWeeks(subjectId, topicNumber).filter(
+    (week) => !isWeekStudied(subjectId, week),
+  );
+  if (!completeWeeksDialog || pendingWeeks.length === 0) return;
+
+  const subject = SUBJECTS.find((candidate) => candidate.id === subjectId);
+  const weeksText =
+    pendingWeeks.length === 1
+      ? `la semana ${pendingWeeks[0]}`
+      : `las semanas ${pendingWeeks.slice(0, -1).join(", ")} y ${pendingWeeks.at(-1)}`;
+  pendingWeeksCompletion = { subjectId, weeks: pendingWeeks };
+  const isFeminine = subject.topicLabel === "Unidad";
+  completeWeeksDialog.querySelector("#completeWeeksTitle").textContent =
+    `${subject.topicLabel} ${topicNumber} ${isFeminine ? "completada" : "completado"}`;
+  completeWeeksDialog.querySelector("#completeWeeksText").textContent =
+    `¿Quieres marcar también ${isFeminine ? "esta unidad como estudiada" : "este tema como estudiado"} en ${weeksText} de la pestaña Semanas?`;
+  completeWeeksDialog.showModal();
+}
+
+function markPendingWeeksStudied() {
+  if (!pendingWeeksCompletion) return;
+  const { subjectId, weeks } = pendingWeeksCompletion;
+  const subjectState = state[subjectId];
+  subjectState.weeks = [...new Set([...subjectState.weeks, ...weeks])].sort((a, b) => a - b);
+  pendingWeeksCompletion = null;
   saveState();
   renderAll();
 }
@@ -1443,6 +1483,14 @@ document.querySelector("#confirmResetButton").addEventListener("click", (event) 
 });
 resetDialog.addEventListener("click", (event) => {
   if (event.target === resetDialog) resetDialog.close();
+});
+completeWeeksDialog?.addEventListener("click", (event) => {
+  if (event.target === completeWeeksDialog) completeWeeksDialog.close();
+});
+completeWeeksDialog?.addEventListener("close", () => {
+  if (completeWeeksDialog.returnValue === "mark") markPendingWeeksStudied();
+  pendingWeeksCompletion = null;
+  completeWeeksDialog.returnValue = "";
 });
 
 function registerProgressTools() {
