@@ -700,6 +700,13 @@ h1 {
   white-space: nowrap;
 }
 
+.study-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
 .material-link {
   display: inline-flex;
   padding: 7px 13px;
@@ -767,15 +774,13 @@ h1 {
 }
 
 .week-subject.is-studied .subject-label,
-.week-subject.is-studied .study-copy,
-.week-subject.is-studied .material-link {
+.week-subject.is-studied .study-copy {
   opacity: .5;
   transition: opacity 160ms ease;
 }
 
 .week-subject.is-studied:hover .subject-label,
-.week-subject.is-studied:hover .study-copy,
-.week-subject.is-studied:hover .material-link {
+.week-subject.is-studied:hover .study-copy {
   opacity: .85;
 }
 
@@ -1743,9 +1748,6 @@ h1 {
   .study-actions {
     grid-row: 1;
     grid-column: 2;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
   }
 
   .progress-save-guide {

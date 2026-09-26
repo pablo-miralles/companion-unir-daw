@@ -631,8 +631,8 @@ function createWeekSubject({ subject, week, heading, subtopics, material, schedu
     copy.append(status);
   }
 
-  const actions = document.createElement("div");
-  actions.className = "study-actions";
+  const studyLinks = document.createElement("div");
+  studyLinks.className = "study-links";
   const campusTopicUrl = getCampusTopicUrl(subject.id, scheduleTopicNumber || material.number);
   if (campusTopicUrl) {
     const link = document.createElement("a");
@@ -643,8 +643,24 @@ function createWeekSubject({ subject, week, heading, subtopics, material, schedu
     link.textContent = "Tema en Campus ↗";
     link.title = `Abrir este tema de ${subject.name} en Campus`;
     link.setAttribute("aria-label", `Abrir este tema de ${subject.name} en Campus`);
-    actions.append(link);
+    studyLinks.append(link);
   }
+  const weekSummaryUrl = getSummaryUrl(subject.id, scheduleTopicNumber || material.number);
+  if (weekSummaryUrl) {
+    const link = document.createElement("a");
+    link.className = "material-link";
+    link.href = weekSummaryUrl;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.textContent = "Resumen ↗";
+    link.title = `Abrir el resumen de este tema de ${subject.name} en Compendio DAW`;
+    link.setAttribute("aria-label", `Abrir el resumen de este tema de ${subject.name} en Compendio DAW`);
+    studyLinks.append(link);
+  }
+  if (studyLinks.childElementCount > 0) copy.append(studyLinks);
+
+  const actions = document.createElement("div");
+  actions.className = "study-actions";
   const weekToggle = document.createElement("button");
   weekToggle.type = "button";
   weekToggle.className = `week-check${studied ? " is-complete" : ""}`;
@@ -1182,7 +1198,7 @@ function createCurriculumTopic(subject, topic) {
     links.append(campusLink);
   }
 
-  const summaryUrl = getSummaryUrl(subject.id, topic.number);
+  const summaryUrl = getSummaryUrlForMaterial(subject.id, topic.number);
   if (summaryUrl) {
     const summaryLink = document.createElement("a");
     summaryLink.className = "summary-link";
@@ -1190,7 +1206,7 @@ function createCurriculumTopic(subject, topic) {
     summaryLink.target = "_blank";
     summaryLink.rel = "noreferrer";
     summaryLink.title = "Abrir el resumen de este tema en Compendio DAW";
-    summaryLink.textContent = "Resumen de apoyo ↗";
+    summaryLink.textContent = "Resumen ↗";
     links.append(summaryLink);
   }
 
@@ -1201,6 +1217,15 @@ function createCurriculumTopic(subject, topic) {
 function getSummaryUrl(subjectId, topicNumber) {
   const slug = SUMMARY_SLUGS[subjectId];
   return slug ? `https://compendio-daw.vercel.app/${slug}/tema-${topicNumber}` : null;
+}
+
+// El compendio numera los temas como el cronograma; en Programación el temario de Campus
+// intercambia algunos números (p. ej. material 8 = tema 10 del cronograma).
+function getSummaryUrlForMaterial(subjectId, materialNumber) {
+  const scheduledItem = Object.values(WEEKLY_STUDY[subjectId] || {}).find(
+    (item) => (item.materialTopic || item.topic) === materialNumber,
+  );
+  return getSummaryUrl(subjectId, scheduledItem?.topic || materialNumber);
 }
 
 function normalizeText(value) {
