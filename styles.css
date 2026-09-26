@@ -330,16 +330,33 @@ h1 {
 
 /* ───────── Próxima entrega ───────── */
 
+/* Barra flotante: siempre abajo, se esconde al bajar y reaparece al subir. */
 .next-deadline {
+  position: fixed;
+  z-index: 15;
+  bottom: 16px;
+  left: 50%;
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr) auto;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
   align-items: stretch;
   overflow: hidden;
-  margin: 0 0 44px;
+  width: min(1080px, calc(100% - 32px));
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: 0 18px 40px -16px rgb(17 24 39 / 30%), 0 2px 6px rgb(17 24 39 / 6%);
+  transform: translateX(-50%);
+  transition: transform 260ms ease, opacity 260ms ease;
+}
+
+.next-deadline.is-tucked {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, calc(100% + 24px));
+}
+
+[data-view-panel="weeks"] {
+  padding-bottom: 110px;
 }
 
 .next-deadline.is-empty {
@@ -379,14 +396,14 @@ h1 {
 .next-deadline-content {
   align-self: center;
   min-width: 0;
-  padding: 18px 24px;
+  padding: 12px 20px;
 }
 
 .next-deadline-content strong {
   margin-bottom: 2px;
   overflow: hidden;
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 650;
   letter-spacing: -.02em;
   text-overflow: ellipsis;
@@ -403,7 +420,7 @@ h1 {
   align-content: center;
   justify-items: center;
   gap: 4px;
-  padding: 16px 12px;
+  padding: 12px 10px;
   background: var(--subject-soft, var(--blue-soft));
   color: var(--subject, var(--blue));
   font-style: normal;
@@ -419,7 +436,7 @@ h1 {
 
 .next-deadline-day {
   font-family: var(--font-display);
-  font-size: 38px;
+  font-size: 30px;
   font-weight: 700;
   line-height: .9;
   letter-spacing: -.04em;
@@ -468,13 +485,53 @@ h1 {
   scroll-margin-top: var(--sticky-header-offset);
 }
 
-.week-section.is-past {
-  opacity: .55;
-  transition: opacity 160ms ease;
+.past-weeks {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 55%);
 }
 
-.week-section.is-past:hover {
-  opacity: .9;
+.past-weeks > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 650;
+  list-style: none;
+}
+
+.past-weeks > summary::-webkit-details-marker {
+  display: none;
+}
+
+.past-weeks > summary::after {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--ink-soft);
+  content: "+";
+  font-size: 17px;
+}
+
+.past-weeks[open] > summary::after {
+  content: "−";
+}
+
+.past-weeks-list {
+  display: grid;
+  gap: 30px;
+  padding: 8px 18px 22px;
+}
+
+.week-section.is-past {
+  opacity: .75;
 }
 
 .week-meta {
@@ -2086,7 +2143,21 @@ h1 {
   }
 
   .next-deadline {
-    grid-template-columns: 88px minmax(0, 1fr);
+    bottom: 10px;
+    grid-template-columns: 76px minmax(0, 1fr);
+    width: calc(100% - 20px);
+  }
+
+  .next-deadline-day {
+    font-size: 24px;
+  }
+
+  .past-weeks-list {
+    padding: 6px 10px 16px;
+  }
+
+  [data-view-panel="weeks"] {
+    padding-bottom: 150px;
   }
 
   .next-deadline-date {
@@ -2096,11 +2167,11 @@ h1 {
 
   .next-deadline-content {
     grid-column: 2;
-    padding: 16px 16px 8px;
+    padding: 10px 14px 6px;
   }
 
   .next-deadline-content strong {
-    font-size: 17px;
+    font-size: 15px;
     white-space: normal;
   }
 
@@ -2108,9 +2179,9 @@ h1 {
     grid-row: 2;
     grid-column: 2;
     justify-self: start;
-    margin: 0 0 16px 16px;
-    padding: 8px 14px;
-    font-size: 13px;
+    margin: 0 0 10px 14px;
+    padding: 6px 12px;
+    font-size: 12px;
   }
 
   .week-subject,

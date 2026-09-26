@@ -48,6 +48,7 @@ let importedStateFromUrl = Boolean(stateFromUrl) && !pendingUrlState;
 let state = importedStateFromUrl ? stateFromUrl : localStateAtStart;
 let currentRenderedWeek = null;
 let selectedWeeksSubject = "all";
+let pastWeeksOpen = false;
 let selectedDeadlinesSubject = "all";
 
 function createInitialState() {
@@ -506,6 +507,19 @@ function renderTimeline() {
   currentRenderedWeek = JSON.stringify(subjectWeeks);
   weeksTimeline.replaceChildren();
 
+  // Las semanas ya pasadas van recogidas en un acordeón (cerrado salvo que el usuario lo abra).
+  const pastWeeks = document.createElement("details");
+  pastWeeks.className = "past-weeks";
+  pastWeeks.open = pastWeeksOpen;
+  pastWeeks.addEventListener("toggle", () => {
+    pastWeeksOpen = pastWeeks.open;
+  });
+  const pastSummary = document.createElement("summary");
+  const pastList = document.createElement("div");
+  pastList.className = "past-weeks-list";
+  pastWeeks.append(pastSummary, pastList);
+  let pastCount = 0;
+
   for (let week = 1; week <= 32; week += 1) {
     const dateGroups = getWeekDateGroups(week, visibleSubjects);
     const currentSubjects = visibleSubjects.filter((subject) => subjectWeeks[subject.id] === week);
@@ -582,7 +596,17 @@ function renderTimeline() {
     }
 
     section.append(meta, content);
-    weeksTimeline.append(section);
+    if (isPast) {
+      pastList.append(section);
+      pastCount += 1;
+    } else {
+      weeksTimeline.append(section);
+    }
+  }
+
+  if (pastCount > 0) {
+    pastSummary.textContent = `Semanas anteriores (${pastCount})`;
+    weeksTimeline.prepend(pastWeeks);
   }
 }
 
@@ -871,6 +895,7 @@ function renderNextDeadline() {
   if (!upcoming) {
     delete nextDeadline.dataset.subject;
     nextDeadline.classList.add("is-empty");
+    nextDeadline.hidden = true;
     nextDeadline.textContent =
       selectedWeeksSubject === "all"
         ? "No hay entregas próximas configuradas."
@@ -879,6 +904,7 @@ function renderNextDeadline() {
   }
 
   nextDeadline.classList.remove("is-empty");
+  nextDeadline.hidden = false;
   nextDeadline.dataset.subject = upcoming.subjectId;
   const subject = SUBJECTS.find((candidate) => candidate.id === upcoming.subjectId);
   const days = Math.ceil((new Date(upcoming.due) - now) / 86400000);
@@ -1475,27 +1501,11 @@ function toggleWeek(subjectId, week) {
   if (message) showToast(message);
 }
 
-function scrollToCurrentWeek(behavior = "smooth") {
-  const currentWeekElement = document.querySelector("#semana-actual");
-  if (!currentWeekElement) return;
-
-  const headerHeight = document.querySelector(".site-header")?.getBoundingClientRect().height || 0;
-  const breathingRoom = 16;
-  const targetTop =
-    window.scrollY + currentWeekElement.getBoundingClientRect().top - headerHeight - breathingRoom;
-
-  window.scrollTo({
-    top: Math.max(0, targetTop),
-    behavior,
-  });
-}
-
 function refreshCurrentWeek() {
   const nextContext = getPlanningContext();
   if (JSON.stringify(nextContext.subjectWeeks) === currentRenderedWeek) return;
   renderTimeline();
-  const weeksPanel = document.querySelector('[data-view-panel="weeks"]');
-  if (!weeksPanel.hidden) window.requestAnimationFrame(() => scrollToCurrentWeek("smooth"));
+  renderNextDeadline();
 }
 
 function copyTextFallback(value) {
@@ -1571,7 +1581,7 @@ function getViewFromUrl() {
   return Object.keys(VIEW_ROUTES).find((view) => VIEW_ROUTES[view] === match?.[1]) || null;
 }
 
-function showView(view, { updateUrl = true, scroll = "smooth" } = {}) {
+function showView(view, { updateUrl = true } = {}) {
   if (!VIEW_ROUTES[view]) return;
   document.querySelectorAll(".nav-button").forEach((item) => {
     const active = item.dataset.view === view;
@@ -1585,12 +1595,29 @@ function showView(view, { updateUrl = true, scroll = "smooth" } = {}) {
     window.history.pushState(null, "", `#/${VIEW_ROUTES[view]}`);
   }
   window.scrollTo({ top: 0, behavior: "auto" });
-  if (view === "weeks") window.requestAnimationFrame(() => scrollToCurrentWeek(scroll));
+  showNextDeadlineBar();
 }
 
 document.querySelectorAll(".nav-button").forEach((button) => {
   button.addEventListener("click", () => showView(button.dataset.view));
 });
+
+// La barra de próxima entrega se oculta al bajar y vuelve al subir.
+let lastScrollY = window.scrollY;
+function showNextDeadlineBar() {
+  nextDeadline?.classList.remove("is-tucked");
+  lastScrollY = window.scrollY;
+}
+window.addEventListener(
+  "scroll",
+  () => {
+    const y = window.scrollY;
+    if (Math.abs(y - lastScrollY) < 6) return;
+    nextDeadline?.classList.toggle("is-tucked", y > lastScrollY && y > 80);
+    lastScrollY = y;
+  },
+  { passive: true },
+);
 
 document.querySelectorAll("[data-go-view]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -1602,14 +1629,12 @@ document.querySelector(".brand")?.addEventListener("click", (event) => {
   event.preventDefault();
   document.querySelector('.nav-button[data-view="weeks"]')?.click();
 });
-document.querySelector("#todayButton").addEventListener("click", () => scrollToCurrentWeek());
 copyProgressButton?.addEventListener("click", () => void copyProgressLink());
 
 weeksSubjectFilter?.addEventListener("change", () => {
   selectedWeeksSubject = weeksSubjectFilter.value;
   renderTimeline();
   renderNextDeadline();
-  window.requestAnimationFrame(() => scrollToCurrentWeek("auto"));
 });
 
 deadlinesSubjectFilter?.addEventListener("change", () => {
@@ -1818,8 +1843,7 @@ renderAll();
 registerProgressTools();
 announceUrlStateImport();
 const initialView = getViewFromUrl() || "weeks";
-if (initialView === "weeks") window.requestAnimationFrame(() => scrollToCurrentWeek("auto"));
-else showView(initialView, { updateUrl: false });
+if (initialView !== "weeks") showView(initialView, { updateUrl: false });
 window.setInterval(refreshCurrentWeek, 60 * 1000);
 window.addEventListener("focus", refreshCurrentWeek);
 document.addEventListener("visibilitychange", () => {
