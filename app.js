@@ -5,12 +5,12 @@ const URL_STATE_HASH_PREFIX = "progreso=";
 const PUBLIC_APP_URL = "";
 const SUBJECTS = CURRICULUM;
 
-const SUMMARY_LINKS = {
-  "bases-datos": { slug: "bbdd", suffix: "intro" },
-  "lenguajes-marcas": { slug: "lmsgi", suffix: "intro" },
-  programacion: { slug: "prog", suffix: "intro" },
-  "entornos-desarrollo": { slug: "ed", suffix: "intro-objetivos" },
-  "sistemas-informaticos": { slug: "si", suffix: "intro-objetivos" },
+const SUMMARY_SLUGS = {
+  "bases-datos": "bbdd",
+  "lenguajes-marcas": "lmsgi",
+  programacion: "prog",
+  "entornos-desarrollo": "ed",
+  "sistemas-informaticos": "si",
 };
 
 const LEGACY_DEFAULTS = {
@@ -1122,7 +1122,7 @@ function renderCurriculum(query = "") {
       body.append(link);
     }
 
-    if (!SUMMARY_LINKS[subject.id]) {
+    if (!SUMMARY_SLUGS[subject.id]) {
       const note = document.createElement("p");
       note.className = "summary-unavailable";
       note.textContent = "No hay resúmenes externos disponibles para esta asignatura.";
@@ -1199,10 +1199,8 @@ function createCurriculumTopic(subject, topic) {
 }
 
 function getSummaryUrl(subjectId, topicNumber) {
-  const config = SUMMARY_LINKS[subjectId];
-  return config
-    ? `https://compendio-daw.vercel.app/#${config.slug}-${topicNumber}-${config.suffix}`
-    : null;
+  const slug = SUMMARY_SLUGS[subjectId];
+  return slug ? `https://compendio-daw.vercel.app/${slug}/tema-${topicNumber}` : null;
 }
 
 function normalizeText(value) {
