@@ -1221,34 +1221,44 @@ function toggleTopic(subjectId, topicNumber) {
   subjectState.topics[index] = !subjectState.topics[index];
   saveState();
   renderAll();
-  if (subjectState.topics[index]) offerToMarkTopicWeeks(subjectId, topicNumber);
+  offerToSyncTopicWeeks(subjectId, topicNumber, subjectState.topics[index]);
 }
 
-function offerToMarkTopicWeeks(subjectId, topicNumber) {
-  const pendingWeeks = getTopicWeeks(subjectId, topicNumber).filter(
-    (week) => !isWeekStudied(subjectId, week),
+function offerToSyncTopicWeeks(subjectId, topicNumber, completed) {
+  const affectedWeeks = getTopicWeeks(subjectId, topicNumber).filter(
+    (week) => isWeekStudied(subjectId, week) !== completed,
   );
-  if (!completeWeeksDialog || pendingWeeks.length === 0) return;
+  if (!completeWeeksDialog || affectedWeeks.length === 0) return;
 
   const subject = SUBJECTS.find((candidate) => candidate.id === subjectId);
-  const weeksText =
-    pendingWeeks.length === 1
-      ? `la semana ${pendingWeeks[0]}`
-      : `las semanas ${pendingWeeks.slice(0, -1).join(", ")} y ${pendingWeeks.at(-1)}`;
-  pendingWeeksCompletion = { subjectId, weeks: pendingWeeks };
   const isFeminine = subject.topicLabel === "Unidad";
-  completeWeeksDialog.querySelector("#completeWeeksTitle").textContent =
-    `${subject.topicLabel} ${topicNumber} ${isFeminine ? "completada" : "completado"}`;
-  completeWeeksDialog.querySelector("#completeWeeksText").textContent =
-    `¿Quieres marcar también ${isFeminine ? "esta unidad como estudiada" : "este tema como estudiado"} en ${weeksText} de la pestaña Semanas?`;
+  const weeksText =
+    affectedWeeks.length === 1
+      ? `la semana ${affectedWeeks[0]}`
+      : `las semanas ${affectedWeeks.slice(0, -1).join(", ")} y ${affectedWeeks.at(-1)}`;
+  const topicText = isFeminine ? "esta unidad" : "este tema";
+  const studiedText = isFeminine ? "estudiada" : "estudiado";
+
+  pendingWeeksCompletion = { subjectId, weeks: affectedWeeks, completed };
+  completeWeeksDialog.querySelector("#completeWeeksTitle").textContent = completed
+    ? `${subject.topicLabel} ${topicNumber} ${isFeminine ? "completada" : "completado"}`
+    : `${subject.topicLabel} ${topicNumber} ${isFeminine ? "desmarcada" : "desmarcado"}`;
+  completeWeeksDialog.querySelector("#completeWeeksText").textContent = completed
+    ? `¿Quieres marcar también ${topicText} como ${studiedText} en ${weeksText} de la pestaña Semanas?`
+    : `¿Quieres desmarcar también ${topicText} como ${studiedText} en ${weeksText} de la pestaña Semanas?`;
+  completeWeeksDialog.querySelector("#completeWeeksConfirm").textContent = completed
+    ? "Sí, marcar semanas"
+    : "Sí, desmarcar semanas";
   completeWeeksDialog.showModal();
 }
 
-function markPendingWeeksStudied() {
+function applyPendingWeeksChange() {
   if (!pendingWeeksCompletion) return;
-  const { subjectId, weeks } = pendingWeeksCompletion;
+  const { subjectId, weeks, completed } = pendingWeeksCompletion;
   const subjectState = state[subjectId];
-  subjectState.weeks = [...new Set([...subjectState.weeks, ...weeks])].sort((a, b) => a - b);
+  subjectState.weeks = completed
+    ? [...new Set([...subjectState.weeks, ...weeks])].sort((a, b) => a - b)
+    : subjectState.weeks.filter((week) => !weeks.includes(week));
   pendingWeeksCompletion = null;
   saveState();
   renderAll();
@@ -1486,7 +1496,7 @@ completeWeeksDialog?.addEventListener("click", (event) => {
   if (event.target === completeWeeksDialog) completeWeeksDialog.close();
 });
 completeWeeksDialog?.addEventListener("close", () => {
-  if (completeWeeksDialog.returnValue === "mark") markPendingWeeksStudied();
+  if (completeWeeksDialog.returnValue === "confirm") applyPendingWeeksChange();
   pendingWeeksCompletion = null;
   completeWeeksDialog.returnValue = "";
 });
