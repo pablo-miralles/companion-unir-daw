@@ -1657,23 +1657,6 @@ function getSortedSessions() {
   return [...TIMETABLE].sort((a, b) => a.day - b.day || timeToMinutes(a.start) - timeToMinutes(b.start));
 }
 
-function getTimetableStatus() {
-  const now = getMadridNow();
-  const sessions = getSortedSessions();
-  const current = sessions.find(
-    (session) =>
-      session.day === now.day &&
-      timeToMinutes(session.start) <= now.minutes &&
-      now.minutes < timeToMinutes(session.end),
-  );
-  const upcoming =
-    sessions.find(
-      (session) =>
-        session.day > now.day || (session.day === now.day && timeToMinutes(session.start) > now.minutes),
-    ) || sessions[0];
-  return { now, current, upcoming };
-}
-
 function describeSession(session) {
   const subject = SUBJECTS.find((candidate) => candidate.id === session.subjectId);
   return {
@@ -1685,12 +1668,10 @@ function describeSession(session) {
   };
 }
 
-function createSessionCard(session, status) {
+function createSessionCard(session) {
   const info = describeSession(session);
   const card = document.createElement("article");
-  const isNow = status.current === session;
-  const isNext = !status.current && status.upcoming === session;
-  card.className = `timetable-session is-${session.kind}${isNow ? " is-now" : ""}${isNext ? " is-next" : ""}`;
+  card.className = `timetable-session is-${session.kind}`;
   card.dataset.subject = session.subjectId;
   const title = document.createElement("strong");
   title.textContent = info.name;
@@ -1707,29 +1688,18 @@ function createSessionCard(session, status) {
   return card;
 }
 
-function renderTimetableNow(status) {
-  const box = document.querySelector("#timetableNow");
-  if (!box) return;
-  box.replaceChildren();
-  const session = status.current || status.upcoming;
-  if (!session) return;
-  const info = describeSession(session);
-  const label = document.createElement("span");
-  label.className = "timetable-now-label";
-  if (status.current) {
-    label.textContent = `Ahora · hasta las ${session.end}`;
-  } else {
-    const daysAhead = (session.day - status.now.day + 7) % 7;
-    const when = daysAhead === 0 ? "hoy" : daysAhead === 1 ? "mañana" : `el ${WEEKDAY_NAMES[session.day]}`;
-    label.textContent = `Siguiente · ${when}`;
-  }
-  const title = document.createElement("strong");
-  title.textContent = info.name;
-  const meta = document.createElement("span");
-  meta.textContent = [info.kind, info.time, info.teacher].filter(Boolean).join(" · ");
-  box.classList.toggle("is-live", Boolean(status.current));
-  box.dataset.subject = session.subjectId;
-  box.append(label, title, meta);
+function formatMinutes(minutes) {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+function createNowLine(minutes) {
+  const line = document.createElement("span");
+  line.className = "timetable-now-line";
+  line.setAttribute("aria-label", `Ahora, ${formatMinutes(minutes)}`);
+  const time = document.createElement("span");
+  time.textContent = formatMinutes(minutes);
+  line.append(time);
+  return line;
 }
 
 function renderTimetable() {
@@ -1737,8 +1707,8 @@ function renderTimetable() {
   const days = document.querySelector("#timetableDays");
   const teachers = document.querySelector("#timetableTeachers");
   if (!grid || !days) return;
-  const status = getTimetableStatus();
-  renderTimetableNow(status);
+  const now = getMadridNow();
+  const isWeekday = now.day >= 1 && now.day <= 5;
 
   // Cuadrícula (escritorio): filas de 30 minutos entre la primera y la última sesión.
   const sessions = getSortedSessions();
@@ -1753,12 +1723,12 @@ function renderTimetable() {
   grid.append(corner);
   for (let day = 1; day <= 5; day += 1) {
     const heading = document.createElement("span");
-    heading.className = `timetable-day-heading${day === status.now.day ? " is-today" : ""}`;
+    heading.className = `timetable-day-heading${day === now.day ? " is-today" : ""}`;
     heading.style.gridColumn = String(day + 1);
-    heading.textContent = WEEKDAY_NAMES[day];
+    heading.textContent = day === now.day ? `Hoy · ${WEEKDAY_NAMES[day]}` : WEEKDAY_NAMES[day];
     heading.setAttribute("role", "columnheader");
     grid.append(heading);
-    if (day === status.now.day) {
+    if (day === now.day) {
       const todayColumn = document.createElement("span");
       todayColumn.className = "timetable-today-column";
       todayColumn.style.gridColumn = String(day + 1);
@@ -1781,7 +1751,7 @@ function renderTimetable() {
     grid.append(label);
   }
   sessions.forEach((session) => {
-    const card = createSessionCard(session, status);
+    const card = createSessionCard(session);
     const startRow = (timeToMinutes(session.start) - firstStart) / 30 + 2;
     const span = (timeToMinutes(session.end) - timeToMinutes(session.start)) / 30;
     card.style.gridColumn = String(session.day + 1);
@@ -1790,15 +1760,27 @@ function renderTimetable() {
     grid.append(card);
   });
 
+  // Línea roja con la hora actual sobre la columna de hoy.
+  if (isWeekday && now.minutes >= firstStart && now.minutes <= lastEnd) {
+    const track = document.createElement("span");
+    track.className = "timetable-now-track";
+    track.style.gridColumn = String(now.day + 1);
+    track.style.gridRow = `2 / span ${slots}`;
+    const line = createNowLine(now.minutes);
+    line.style.top = `${((now.minutes - firstStart) / (lastEnd - firstStart)) * 100}%`;
+    track.append(line);
+    grid.append(track);
+  }
+
   // Lista por días (móvil), empezando por hoy (o por el lunes en fin de semana).
   days.replaceChildren();
-  const startDay = status.now.day >= 1 && status.now.day <= 5 ? status.now.day : 1;
+  const startDay = isWeekday ? now.day : 1;
   for (let offset = 0; offset < 5; offset += 1) {
     const day = ((startDay - 1 + offset) % 5) + 1;
     const section = document.createElement("section");
-    section.className = `timetable-day${day === status.now.day ? " is-today" : ""}`;
+    section.className = `timetable-day${day === now.day ? " is-today" : ""}`;
     const heading = document.createElement("h2");
-    heading.textContent = day === status.now.day ? `Hoy · ${WEEKDAY_NAMES[day]}` : WEEKDAY_NAMES[day];
+    heading.textContent = day === now.day ? `Hoy · ${WEEKDAY_NAMES[day]}` : WEEKDAY_NAMES[day];
     section.append(heading);
     const daySessions = sessions.filter((session) => session.day === day);
     if (daySessions.length === 0) {
@@ -1807,7 +1789,15 @@ function renderTimetable() {
       empty.textContent = "Sin clases ni tutorías.";
       section.append(empty);
     }
-    daySessions.forEach((session) => section.append(createSessionCard(session, status)));
+    let nowLineAdded = !(day === now.day);
+    daySessions.forEach((session) => {
+      if (!nowLineAdded && timeToMinutes(session.start) > now.minutes) {
+        section.append(createNowLine(now.minutes));
+        nowLineAdded = true;
+      }
+      section.append(createSessionCard(session));
+    });
+    if (!nowLineAdded && daySessions.length > 0) section.append(createNowLine(now.minutes));
     days.append(section);
   }
 

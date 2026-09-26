@@ -1338,42 +1338,6 @@ h1 {
 
 /* ───────── Horario ───────── */
 
-.timetable-now {
-  display: grid;
-  gap: 2px;
-  margin: -6px 0 18px;
-  padding: 16px 20px;
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--line-strong);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-
-.timetable-now.is-live {
-  border-left-color: var(--blue);
-}
-
-.timetable-now-label {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.timetable-now.is-live .timetable-now-label {
-  color: var(--blue-deep);
-}
-
-.timetable-now strong {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -.01em;
-}
-
-.timetable-now > span:last-child {
-  color: var(--ink-soft);
-  font-size: 14px;
-}
-
 .timetable-legend {
   display: flex;
   gap: 18px;
@@ -1442,7 +1406,11 @@ h1 {
 }
 
 .timetable-day-heading.is-today {
-  color: var(--blue-deep);
+  justify-self: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
 }
 
 .timetable-today-column {
@@ -1511,12 +1479,48 @@ h1 {
   display: none;
 }
 
-.timetable-session.is-now {
-  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--blue);
+.timetable-now-track {
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
 }
 
-.timetable-session.is-next {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--ink-soft);
+.timetable-now-line {
+  --now-red: #e5484d;
+  display: block;
+  height: 2px;
+  background: var(--now-red);
+}
+
+.timetable-now-track .timetable-now-line {
+  position: absolute;
+  right: -4px;
+  left: -4px;
+  transform: translateY(-1px);
+}
+
+.timetable-now-line::before {
+  position: absolute;
+  top: -4px;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--now-red);
+  content: "";
+}
+
+.timetable-now-line > span {
+  position: absolute;
+  top: -9px;
+  right: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--now-red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .timetable-days {
@@ -2266,7 +2270,16 @@ h1 {
   }
 
   .timetable-day.is-today h2 {
-    color: var(--blue-deep);
+    justify-self: start;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .timetable-day .timetable-now-line {
+    position: relative;
+    margin: 6px 0 6px 5px;
   }
 
   .timetable-day {
