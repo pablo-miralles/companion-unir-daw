@@ -1,5 +1,8 @@
 const STORAGE_KEY = "daw-progress-v1";
-const API_PROGRESS_URL = "/api/progress";
+const API_PROGRESS_URL = "api/progress";
+const COMPENDIO_HOST = "compendio-daw.vercel.app";
+const COMPENDIO_READ_KEY = "daw_compendio_read_topics";
+const COMPENDIO_SYNC_KEY = "daw-compendio-sync-v1";
 const URL_STATE_VERSION = 1;
 const URL_STATE_HASH_PREFIX = "progreso=";
 const PUBLIC_APP_URL = "";
@@ -361,6 +364,7 @@ function saveState() {
   }
 
   saveLocalSnapshot(snapshot);
+  writeCompendioReadTopics();
   markSaved("Todo guardado en este navegador");
 }
 
@@ -1294,11 +1298,85 @@ function getSummaryUrl(subjectId, topicNumber) {
 
 // El compendio numera los temas como el cronograma; en Programación el temario de Campus
 // intercambia algunos números (p. ej. material 8 = tema 10 del cronograma).
-function getSummaryUrlForMaterial(subjectId, materialNumber) {
+function getCompendioTopicNumber(subjectId, materialNumber) {
   const scheduledItem = Object.values(WEEKLY_STUDY[subjectId] || {}).find(
     (item) => (item.materialTopic || item.topic) === materialNumber,
   );
-  return getSummaryUrl(subjectId, scheduledItem?.topic || materialNumber);
+  return scheduledItem?.topic || materialNumber;
+}
+
+function getSummaryUrlForMaterial(subjectId, materialNumber) {
+  return getSummaryUrl(subjectId, getCompendioTopicNumber(subjectId, materialNumber));
+}
+
+// Sincronización con Compendio DAW: solo funciona si ambas webs comparten dominio
+// (y por tanto localStorage). "Leído" en el compendio equivale a "completado" aquí.
+function isCompendioSyncEnabled() {
+  try {
+    return window.location.hostname === COMPENDIO_HOST || localStorage.getItem(COMPENDIO_READ_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+function readStoredIdSet(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key));
+    return Array.isArray(value) ? new Set(value.filter((item) => typeof item === "string")) : null;
+  } catch {
+    return null;
+  }
+}
+
+function getCompendioTopicEntries() {
+  return SUBJECTS.flatMap((subject) => {
+    const slug = SUMMARY_SLUGS[subject.id];
+    if (!slug) return [];
+    return subject.topics.map((topic) => ({
+      subjectId: subject.id,
+      index: topic.number - 1,
+      id: `${slug}-tema-${getCompendioTopicNumber(subject.id, topic.number)}`,
+    }));
+  });
+}
+
+function writeCompendioReadTopics() {
+  if (!isCompendioSyncEnabled()) return;
+  const entries = getCompendioTopicEntries();
+  const knownIds = new Set(entries.map((entry) => entry.id));
+  // Conserva lo que el compendio tenga y el companion no conozca.
+  const next = [...(readStoredIdSet(COMPENDIO_READ_KEY) || [])].filter((id) => !knownIds.has(id));
+  entries.forEach(({ subjectId, index, id }) => {
+    if (state[subjectId].topics[index]) next.push(id);
+  });
+  try {
+    const serialized = JSON.stringify(next);
+    localStorage.setItem(COMPENDIO_READ_KEY, serialized);
+    localStorage.setItem(COMPENDIO_SYNC_KEY, serialized);
+  } catch {
+    // Sin almacenamiento disponible no hay nada que sincronizar.
+  }
+}
+
+// Aplica lo que haya cambiado en el compendio desde la última sincronización.
+// La primera vez solo suma: lo leído allí pasa a completado aquí, sin desmarcar nada.
+function pullCompendioReadTopics() {
+  if (!isCompendioSyncEnabled()) return false;
+  const current = readStoredIdSet(COMPENDIO_READ_KEY) || new Set();
+  const lastSynced = readStoredIdSet(COMPENDIO_SYNC_KEY);
+  let changed = false;
+
+  getCompendioTopicEntries().forEach(({ subjectId, index, id }) => {
+    const readInCompendio = current.has(id);
+    const changedInCompendio = lastSynced ? readInCompendio !== lastSynced.has(id) : readInCompendio;
+    if (changedInCompendio && state[subjectId].topics[index] !== readInCompendio) {
+      state[subjectId].topics[index] = readInCompendio;
+      changed = true;
+    }
+  });
+
+  writeCompendioReadTopics();
+  return changed;
 }
 
 function normalizeText(value) {
@@ -1603,6 +1681,15 @@ resetDialog.addEventListener("click", (event) => {
   if (event.target === resetDialog) resetDialog.close();
 });
 // Pegar un enlace de progreso con la página ya abierta solo cambia el "#": no recarga.
+window.addEventListener("storage", (event) => {
+  if (event.key !== COMPENDIO_READ_KEY) return;
+  if (pullCompendioReadTopics()) {
+    saveState();
+    renderAll();
+    showToast("Progreso actualizado desde el compendio.");
+  }
+});
+
 window.addEventListener("hashchange", () => {
   const linkedState = loadStateFromUrl();
   if (!linkedState) return;
@@ -1733,6 +1820,7 @@ function registerProgressTools() {
   });
 }
 
+if (pullCompendioReadTopics()) saveLocalSnapshot(JSON.stringify(state));
 populateSubjectFilter(weeksSubjectFilter);
 populateSubjectFilter(deadlinesSubjectFilter);
 renderAll();
