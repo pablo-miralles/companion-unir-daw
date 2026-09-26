@@ -1138,50 +1138,66 @@ h1 {
 
 .deadlines-list {
   display: grid;
-  gap: 26px;
+  gap: 14px;
+}
+
+.deadline-group {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.deadline-group.is-past {
+  opacity: .5;
 }
 
 .deadline-group-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 4px 12px;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 3px;
+  padding: 15px 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
 }
 
-.deadline-group-heading h2 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 22px;
+.deadline-day {
+  font-size: 30px;
+  font-weight: 750;
+  letter-spacing: -.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.deadline-month {
+  color: var(--blue-deep);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: -.02em;
-  text-transform: none;
+  letter-spacing: .06em;
 }
 
-.deadline-group-heading h2::first-letter {
-  text-transform: uppercase;
-}
-
-.deadline-group-heading span {
+.deadline-time {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .deadline-items {
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   background: var(--surface);
-  box-shadow: var(--shadow-sm);
 }
 
 .deadline-row {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) auto;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 16px;
-  min-height: 70px;
-  padding: 14px 22px;
+  gap: 14px;
+  min-height: 88px;
+  padding: 14px 20px;
   border-top: 1px solid var(--line);
 }
 
@@ -1189,30 +1205,8 @@ h1 {
   border-top: 0;
 }
 
-.deadline-row.is-past {
-  opacity: .5;
-}
-
-.deadline-type {
-  width: max-content;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.deadline-type.is-activity {
-  background: var(--subject, var(--green));
-  color: #fff;
-}
-
-.deadline-type.is-test {
-  background: var(--subject-soft, var(--blue-soft));
-  color: var(--subject, var(--blue));
-}
-
 .deadline-content strong,
-.deadline-content span {
+.deadline-content > span {
   display: block;
 }
 
@@ -1222,10 +1216,25 @@ h1 {
   font-weight: 650;
 }
 
-.deadline-content span,
+.deadline-content > span,
 .deadline-details {
   color: var(--muted);
   font-size: 13px;
+}
+
+.deadline-type {
+  font-weight: 650;
+}
+
+.deadline-type::after {
+  margin: 0 6px;
+  color: var(--faint);
+  content: "·";
+  font-weight: 400;
+}
+
+.deadline-type.is-activity {
+  color: var(--subject, var(--ink));
 }
 
 .deadline-details {
@@ -1237,15 +1246,19 @@ h1 {
 }
 
 .deadline-details a {
-  color: var(--ink);
-  font-weight: 650;
-  text-decoration: underline;
-  text-decoration-color: var(--line-strong);
-  text-underline-offset: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
 }
 
 .deadline-details a:hover {
-  text-decoration-color: currentColor;
+  border-color: var(--subject, var(--blue));
+  background: var(--subject-soft, var(--blue-soft));
+  color: var(--subject, var(--blue));
 }
 
 .deadlines-missing,
@@ -1574,8 +1587,8 @@ h1 {
   }
 
   .deadline-row {
-    grid-template-columns: 84px minmax(0, 1fr);
-    gap: 6px 12px;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 8px 12px;
   }
 
   .next-deadline {
@@ -1729,6 +1742,25 @@ h1 {
 
   .topic-dots {
     grid-template-columns: repeat(5, 1fr);
+  }
+
+  .deadline-group {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .deadline-group-heading {
+    display: flex;
+    align-items: baseline;
+    justify-items: start;
+    gap: 8px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+  }
+
+  .deadline-day {
+    font-size: 20px;
   }
 
   .deadline-row {

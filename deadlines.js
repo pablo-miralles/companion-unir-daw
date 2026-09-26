@@ -41,7 +41,7 @@ const DEADLINES = [
     subjectId: "entornos-desarrollo",
     type: "Actividad",
     title: "Actividad 1 individual",
-    due: "2026-10-26T23:59:00+02:00",
+    due: "2026-10-26T23:59:00+01:00",
     week: null,
     points: "2 puntos",
     source: "https://campusfp.unir.net/courses/3430/assignments",

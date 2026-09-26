@@ -841,14 +841,26 @@ function renderDeadlines() {
   const now = new Date();
   groups.forEach((group) => {
     const section = document.createElement("section");
-    section.className = "deadline-group";
+    section.className = `deadline-group${new Date(group.due) < now ? " is-past" : ""}`;
+    const dateParts = formatDeadlineParts(group.due);
     const heading = document.createElement("div");
     heading.className = "deadline-group-heading";
     const date = document.createElement("h2");
+    date.className = "sr-only";
     date.textContent = formatDeadlineDate(group.due);
+    const day = document.createElement("span");
+    day.className = "deadline-day";
+    day.textContent = dateParts.day;
+    day.setAttribute("aria-hidden", "true");
+    const month = document.createElement("span");
+    month.className = "deadline-month";
+    month.textContent = dateParts.month;
+    month.setAttribute("aria-hidden", "true");
     const time = document.createElement("span");
-    time.textContent = "23:59 · hora peninsular";
-    heading.append(date, time);
+    time.className = "deadline-time";
+    time.textContent = `${dateParts.weekday} · ${dateParts.time}`;
+    time.title = "Hora peninsular";
+    heading.append(date, day, month, time);
 
     const items = document.createElement("div");
     items.className = "deadline-items";
@@ -860,17 +872,20 @@ function renderDeadlines() {
       row.className = `deadline-row${new Date(deadline.due) < now ? " is-past" : ""}`;
       row.dataset.subject = subject.id;
 
-      const type = document.createElement("span");
-      type.className = `deadline-type is-${deadline.type === "Tests" ? "test" : "activity"}`;
-      type.textContent = deadline.type;
+      const code = document.createElement("span");
+      code.className = "subject-code";
+      code.textContent = subject.short;
 
       const content = document.createElement("div");
       content.className = "deadline-content";
       const title = document.createElement("strong");
       title.textContent = deadline.title;
-      const subjectName = document.createElement("span");
-      subjectName.textContent = subject.name;
-      content.append(title, subjectName);
+      const meta = document.createElement("span");
+      const type = document.createElement("span");
+      type.className = `deadline-type is-${deadline.type === "Tests" ? "test" : "activity"}`;
+      type.textContent = deadline.type;
+      meta.append(type, document.createTextNode(subject.name));
+      content.append(title, meta);
 
       const details = document.createElement("div");
       details.className = "deadline-details";
@@ -891,7 +906,7 @@ function renderDeadlines() {
         campusLink.title = "Abrir esta entrega o el listado de tests en Campus";
         details.append(campusLink);
       }
-      row.append(type, content, details);
+      row.append(code, content, details);
       items.append(row);
     });
     section.append(heading, items);
