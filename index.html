@@ -4,9 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Companion local de estudio y progreso para primero de DAW en UNIR." />
-    <meta name="theme-color" content="#0098cd" />
+    <meta name="theme-color" content="#f5f2ec" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..700&family=Figtree:wght@400..700&display=swap"
+    />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-10" />
+    <link rel="stylesheet" href="styles.css?v=20260926-20" />
   </head>
   <body>
     <header class="site-header">
@@ -53,21 +59,73 @@
       <section data-view-panel="progress" hidden>
         <div class="page-intro">
           <div>
-            <p id="persistenceHint" class="kicker">Guardado solo en este dispositivo</p>
+            <p class="kicker">Tu panel personal</p>
             <h1>Progreso</h1>
           </div>
           <div class="page-actions">
-            <button id="copyProgressButton" class="button primary" type="button">Copiar enlace</button>
             <button id="resetButton" class="quiet-button" type="button">Reiniciar</button>
           </div>
         </div>
 
+        <aside class="progress-save-guide" aria-label="Cómo se guarda el progreso">
+          <div class="save-guide-block save-guide-auto">
+            <p id="persistenceHint" class="save-guide-label">Guardado automático en este navegador</p>
+            <strong>No necesitas pulsar «guardar»</strong>
+            <p>
+              Cada vez que marcas un tema, test o actividad, el cambio se guarda en este navegador. No necesitas crear una cuenta.
+            </p>
+            <p id="savedState" class="saved-state" aria-live="polite">Todo guardado</p>
+          </div>
+          <div class="save-guide-block save-guide-backup">
+            <p class="save-guide-label">Copia de seguridad</p>
+            <strong>Guarda un enlace con tu progreso</strong>
+            <p>
+              Te servirá si cambias de dispositivo o borras los datos del navegador. El enlace es una copia de este momento: vuelve a copiarlo cuando avances.
+            </p>
+            <button
+              id="copyProgressButton"
+              class="button primary"
+              type="button"
+              aria-describedby="shareState"
+            >
+              Copiar enlace con mi progreso
+            </button>
+            <p id="shareState" class="share-state" aria-live="polite">
+              Guárdalo en Favoritos, Notas o donde prefieras.
+            </p>
+          </div>
+        </aside>
+
+        <details class="save-help">
+          <summary>¿Cómo funciona el guardado? Explicado sin tecnicismos</summary>
+          <div class="save-help-body">
+            <div>
+              <h3>Dónde se guarda</h3>
+              <p>
+                En la memoria del navegador que estás usando ahora (Chrome, Safari, Edge…), en este ordenador o móvil.
+                No se sube a ninguna cuenta ni a internet, así que nadie más puede verlo.
+              </p>
+            </div>
+            <div>
+              <h3>Cuándo podrías perderlo</h3>
+              <ul>
+                <li>Si borras el historial o los «datos de sitios» del navegador.</li>
+                <li>Si usas una ventana privada o de incógnito.</li>
+                <li>Si abres la página en otro navegador, ordenador o móvil: allí empezará vacía.</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Cómo recuperarlo</h3>
+              <p>
+                Pulsa «Copiar enlace con mi progreso» y guárdalo (en Favoritos, en una nota o enviándotelo por correo).
+                Cuando lo abras en cualquier sitio, verás tu progreso tal como estaba al copiarlo. Si avanzas, copia uno nuevo.
+              </p>
+            </div>
+          </div>
+        </details>
+
         <div id="progressSummary" class="progress-summary"></div>
         <div id="progressList" class="progress-list"></div>
-        <div class="progress-status">
-          <p id="savedState" class="saved-state" aria-live="polite">Guardado en este dispositivo</p>
-          <p id="shareState" class="share-state" aria-live="polite">El enlace se actualiza con tu progreso.</p>
-        </div>
       </section>
 
       <section data-view-panel="deadlines" hidden>
@@ -127,6 +185,6 @@
     <script src="campus-links.js"></script>
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-3"></script>
-    <script src="app.js?v=20260926-11"></script>
+    <script src="app.js?v=20260926-20"></script>
   </body>
 </html>

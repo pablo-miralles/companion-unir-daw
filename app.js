@@ -39,6 +39,7 @@ const persistenceHint = document.querySelector("#persistenceHint");
 const resetDialog = document.querySelector("#resetDialog");
 
 let saveTimer = null;
+let copyFeedbackTimer = null;
 let persistenceMode = "local";
 let serverSaveQueue = Promise.resolve();
 const stateFromUrl = loadStateFromUrl();
@@ -249,13 +250,13 @@ function queueServerSnapshot(snapshot) {
       if (persistenceMode === "server") await writeServerSnapshot(snapshot);
     })
     .then(() => {
-      if (persistenceMode === "server") markSaved("Guardado en progress.json");
+      if (persistenceMode === "server") markSaved("Todo guardado en el archivo del proyecto");
     })
     .catch(() => {
       persistenceMode = "local";
       saveLocalSnapshot(snapshot);
-      setPersistenceHint("Servidor no disponible · guardado solo en este dispositivo");
-      savedState.textContent = "Servidor no disponible · guardado en este dispositivo";
+      setPersistenceHint("Guardado automático en este navegador");
+      savedState.textContent = "Todo guardado en este navegador";
       savedState.classList.remove("is-saving");
     });
 }
@@ -271,7 +272,7 @@ function saveState() {
   }
 
   saveLocalSnapshot(snapshot);
-  markSaved("Guardado en este dispositivo");
+  markSaved("Todo guardado en este navegador");
 }
 
 async function initialisePersistence() {
@@ -282,14 +283,14 @@ async function initialisePersistence() {
     const payload = await response.json();
     const remoteState = Object.prototype.hasOwnProperty.call(payload, "state") ? payload.state : payload;
     persistenceMode = "server";
-    setPersistenceHint("Guardado en progress.json");
+    setPersistenceHint("Guardado automático en el archivo del proyecto");
 
     if (importedStateFromUrl) {
       importedStateFromUrl = false;
       saveLocalSnapshot(JSON.stringify(state));
       queueServerSnapshot(JSON.stringify(state));
-      savedState.textContent = "Progreso cargado desde el enlace";
-      shareState.textContent = "Este enlace ya contiene el estado mostrado.";
+      savedState.textContent = "Progreso recuperado desde el enlace";
+      shareState.textContent = "Puedes seguir avanzando y crear una copia nueva cuando quieras.";
       return;
     }
 
@@ -297,7 +298,7 @@ async function initialisePersistence() {
       state = hydrateState(remoteState);
       renderAll();
       syncStateUrl();
-      savedState.textContent = "Guardado en progress.json";
+      savedState.textContent = "Todo guardado en el archivo del proyecto";
       savedState.classList.remove("is-saving");
       return;
     }
@@ -306,12 +307,12 @@ async function initialisePersistence() {
     queueServerSnapshot(JSON.stringify(state));
   } catch {
     persistenceMode = "local";
-    setPersistenceHint("Guardado solo en este dispositivo");
+    setPersistenceHint("Guardado automático en este navegador");
     if (importedStateFromUrl) {
       importedStateFromUrl = false;
       saveLocalSnapshot(JSON.stringify(state));
-      savedState.textContent = "Progreso cargado desde el enlace";
-      shareState.textContent = "Este enlace ya contiene el estado mostrado.";
+      savedState.textContent = "Progreso recuperado desde el enlace";
+      shareState.textContent = "Puedes seguir avanzando y crear una copia nueva cuando quieras.";
     }
   }
 }
@@ -1240,9 +1241,15 @@ async function copyProgressLink() {
   }
 
   shareState.textContent = copied
-    ? "Enlace copiado. Al abrirlo se restaurará este progreso."
-    : "No se pudo copiar automáticamente; copia la URL de la barra del navegador.";
+    ? "Enlace copiado. Al abrirlo recuperarás el progreso que tienes ahora."
+    : "No se pudo copiar automáticamente. Copia la dirección completa de la barra del navegador.";
   shareState.classList.toggle("is-error", !copied);
+
+  window.clearTimeout(copyFeedbackTimer);
+  copyProgressButton.textContent = copied ? "Enlace copiado ✓" : "No se pudo copiar";
+  copyFeedbackTimer = window.setTimeout(() => {
+    copyProgressButton.textContent = "Copiar enlace con mi progreso";
+  }, 2400);
 }
 
 function populateSubjectFilter(select) {
