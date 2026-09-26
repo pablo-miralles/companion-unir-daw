@@ -1627,110 +1627,150 @@ h1 {
 
 /* ───────── Cómo usar ───────── */
 
+.guide-article {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.guide-header {
+  margin-bottom: 40px;
+}
+
 .guide-lead {
-  max-width: 640px;
-  margin: -10px 0 28px;
+  margin: 14px 0 0;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.6;
 }
 
-.guide-steps {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin: 0 0 16px;
-  padding: 0;
-  list-style: none;
-  counter-reset: guide;
+.guide-section {
+  padding: 36px 0;
+  border-top: 1px solid var(--line);
 }
 
-.guide-step {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 24px 26px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-  counter-increment: guide;
-}
-
-.guide-step h2,
-.guide-save h2 {
+.guide-section > h2 {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -.01em;
-}
-
-.guide-step h2::before {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border-radius: 8px;
-  background: var(--blue-soft);
-  color: var(--blue-deep);
-  content: counter(guide);
-  font-size: 14px;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 24px;
   font-weight: 750;
+  letter-spacing: -.02em;
 }
 
-.guide-step p,
-.guide-step li,
-.guide-save li {
-  color: var(--ink-soft);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.guide-step p {
-  margin-bottom: 10px;
-}
-
-.guide-step ul {
+.guide-section > h2 > span {
   display: grid;
-  gap: 4px;
-  margin: 0 0 14px;
-  padding-left: 18px;
-}
-
-.guide-go {
-  margin-top: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--blue-deep);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.guide-go:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.guide-save {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 24px 26px;
-  border: 1px solid color-mix(in srgb, var(--blue) 25%, white);
-  border-radius: var(--radius-lg);
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 9px;
   background: var(--blue-soft);
+  color: var(--blue-deep);
+  font-size: 15px;
 }
 
-.guide-save ol {
+.guide-section > p,
+.guide-points li {
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.guide-section > p {
+  margin-bottom: 14px;
+}
+
+.guide-example-label {
+  margin: 20px 0 10px !important;
+  color: var(--muted) !important;
+  font-size: 14px !important;
+  font-weight: 600;
+}
+
+/* Componentes reales mostrados como ilustración: sin interacción. */
+.guide-example {
+  margin: 0 0 18px;
+  padding: 18px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 45%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.guide-example * {
+  cursor: default !important;
+}
+
+.guide-example-inline {
+  display: inline-block;
+  padding: 14px 18px;
+}
+
+.guide-example .button {
+  display: inline-flex;
+  align-items: center;
+}
+
+.guide-example .week-check,
+.guide-example .test-check,
+.guide-example .topic-dot,
+.guide-example .topic-check {
+  display: inline-grid;
+  place-items: center;
+}
+
+.guide-example .week-check {
+  display: inline-flex;
+}
+
+.guide-example .test-check,
+.guide-example .topic-dot {
+  line-height: 1;
+}
+
+.guide-example .counter {
+  display: grid;
+}
+
+.guide-example .material-link {
+  display: inline-flex;
+}
+
+.guide-curriculum {
+  padding: 4px 18px;
+}
+
+.guide-curriculum .curriculum-topic:first-child {
+  border-top: 0;
+}
+
+.guide-dialog {
+  max-width: 460px;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 24px 60px -24px rgb(17 24 39 / 35%);
+}
+
+.guide-points {
   display: grid;
   gap: 6px;
-  margin: 0 0 16px;
+  margin: 0;
   padding-left: 20px;
+}
+
+.guide-tip {
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  background: var(--blue-soft);
+}
+
+.guide-footer {
+  padding: 32px 0 0;
+  border-top: 1px solid var(--line);
+  text-align: center;
 }
 
 /* ───────── Diálogo y botones ───────── */
@@ -1883,8 +1923,12 @@ h1 {
 }
 
 @media (max-width: 760px) {
-  .guide-steps {
-    grid-template-columns: 1fr;
+  .guide-example {
+    padding: 10px;
+  }
+
+  .guide-section > h2 {
+    font-size: 20px;
   }
 
   .header-inner,
@@ -2101,6 +2145,16 @@ h1 {
 
   .topic-dots {
     grid-template-columns: repeat(5, 1fr);
+  }
+
+  .work-counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .counter {
+    grid-template-columns: minmax(0, 1fr) auto 10px;
+    gap: 6px;
   }
 
   .deadline-group {
