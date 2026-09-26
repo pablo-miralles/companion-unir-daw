@@ -1460,6 +1460,10 @@ document.querySelectorAll(".nav-button").forEach((button) => {
   });
 });
 
+document.querySelector(".brand")?.addEventListener("click", (event) => {
+  event.preventDefault();
+  document.querySelector('.nav-button[data-view="weeks"]')?.click();
+});
 document.querySelector("#todayButton").addEventListener("click", () => scrollToCurrentWeek());
 copyProgressButton?.addEventListener("click", () => void copyProgressLink());
 
