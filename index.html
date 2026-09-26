@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-49" />
+    <link rel="stylesheet" href="styles.css?v=20260926-50" />
   </head>
   <body>
     <header class="site-header">
@@ -27,7 +27,6 @@
           <button class="nav-button" type="button" data-view="timetable" aria-pressed="false">Horario</button>
           <button class="nav-button" type="button" data-view="deadlines" aria-pressed="false">Entregas</button>
           <button class="nav-button" type="button" data-view="progress" aria-pressed="false">Progreso</button>
-          <button class="nav-button" type="button" data-view="curriculum" aria-pressed="false">Temario</button>
           <button class="nav-button" type="button" data-view="guide" aria-pressed="false" aria-label="Cómo usar"><span class="nav-label-full">Cómo usar</span><span class="nav-label-short" aria-hidden="true">Ayuda</span></button>
         </nav>
 
@@ -142,6 +141,12 @@
         </details>
 
         <div id="progressSummary" class="progress-summary"></div>
+        <div class="progress-toolbar">
+          <label class="search-field">
+            <span class="sr-only">Buscar un tema</span>
+            <input id="progressSearch" type="search" placeholder="Buscar un tema…" autocomplete="off" />
+          </label>
+        </div>
         <p class="progress-legend" aria-hidden="true">
           <span><i></i>Pendiente</span>
           <span><i class="is-progress"></i>En progreso: has estudiado alguna semana del tema</span>
@@ -480,6 +485,6 @@
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
     <script src="timetable.js?v=20260926-1"></script>
-    <script src="app.js?v=20260926-47"></script>
+    <script src="app.js?v=20260926-48"></script>
   </body>
 </html>

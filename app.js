@@ -49,6 +49,9 @@ let state = importedStateFromUrl ? stateFromUrl : localStateAtStart;
 let currentRenderedWeek = null;
 let selectedWeeksSubject = "all";
 let pastWeeksOpen = false;
+// Progreso incluye el temario: asignaturas desplegadas y búsqueda de temas.
+const expandedSubjects = new Set();
+let progressQuery = "";
 let selectedDeadlinesSubject = "all";
 
 function createInitialState() {
@@ -779,9 +782,23 @@ function renderProgress() {
     createSummaryMetric(`${totals.activitiesDone}/${totals.activitiesTotal}`, "actividades"),
   );
   progressList.replaceChildren();
+  const normalizedQuery = normalizeText(progressQuery.trim());
 
   SUBJECTS.forEach((subject) => {
     const subjectState = state[subject.id];
+    const subjectMatches = normalizeText(subject.name).includes(normalizedQuery);
+    const topics = subject.topics.filter(
+      (topic) =>
+        !normalizedQuery ||
+        subjectMatches ||
+        normalizeText(`${topic.number} ${topic.title}`).includes(normalizedQuery),
+    );
+    if (normalizedQuery && topics.length === 0) return;
+    const expanded = Boolean(normalizedQuery) || expandedSubjects.has(subject.id);
+
+    const wrapper = document.createElement("section");
+    wrapper.className = `progress-subject${expanded ? " is-expanded" : ""}`;
+    wrapper.dataset.subject = subject.id;
     const row = document.createElement("article");
     row.className = "progress-row";
     row.dataset.subject = subject.id;
@@ -799,7 +816,15 @@ function renderProgress() {
     const bar = document.createElement("span");
     bar.style.width = `${getPercent(subjectState)}%`;
     progress.append(bar);
-    copy.append(strong, progress);
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "topics-toggle";
+    toggle.dataset.toggleTopics = subject.id;
+    toggle.setAttribute("aria-expanded", String(expanded));
+    toggle.textContent = expanded
+      ? `Ocultar ${subject.topicLabel === "Unidad" ? "unidades" : "temas"}`
+      : `Ver ${subject.topicLabel === "Unidad" ? "unidades" : "temas"} y enlaces`;
+    copy.append(strong, progress, toggle);
     name.append(code, copy);
 
     const dots = document.createElement("div");
@@ -834,8 +859,17 @@ function renderProgress() {
     }
 
     row.append(name, dots, work);
-    progressList.append(row);
+    wrapper.append(row);
+    if (expanded) wrapper.append(createSubjectTopicsBody(subject, topics));
+    progressList.append(wrapper);
   });
+
+  if (progressList.childElementCount === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No hay temas que coincidan con esa búsqueda.";
+    progressList.append(empty);
+  }
 }
 
 function createSummaryMetric(value, label) {
@@ -1221,39 +1255,7 @@ function renderCurriculum(query = "") {
     title.textContent = subject.name;
     summary.append(code, title);
 
-    const body = document.createElement("div");
-    body.className = "curriculum-body";
-    const scheduleUrl = getCampusScheduleUrl(subject.id);
-    if (scheduleUrl) {
-      const link = document.createElement("a");
-      link.className = "schedule-link";
-      link.href = scheduleUrl;
-      link.target = "_blank";
-      link.rel = "noreferrer";
-      link.textContent = "Cronograma en Campus ↗";
-      body.append(link);
-    }
-
-    const temarioUrl = getCampusTemarioUrl(subject.id);
-    if (temarioUrl) {
-      const link = document.createElement("a");
-      link.className = "schedule-link";
-      link.href = temarioUrl;
-      link.target = "_blank";
-      link.rel = "noreferrer";
-      link.textContent = "Temario oficial en Campus ↗";
-      link.title = "Abrir el temario oficial de esta asignatura en Campus";
-      body.append(link);
-    }
-
-    if (!SUMMARY_SLUGS[subject.id]) {
-      const note = document.createElement("p");
-      note.className = "summary-unavailable";
-      note.textContent = "No hay resúmenes externos disponibles para esta asignatura.";
-      body.append(note);
-    }
-
-    topics.forEach((topic) => body.append(createCurriculumTopic(subject, topic)));
+    const body = createSubjectTopicsBody(subject, topics);
 
     details.append(summary, body);
     curriculumList.append(details);
@@ -1265,6 +1267,43 @@ function renderCurriculum(query = "") {
     empty.textContent = "No hay resultados para esa búsqueda.";
     curriculumList.append(empty);
   }
+}
+
+function createSubjectTopicsBody(subject, topics) {
+  const body = document.createElement("div");
+  body.className = "curriculum-body";
+  const scheduleUrl = getCampusScheduleUrl(subject.id);
+  if (scheduleUrl) {
+    const link = document.createElement("a");
+    link.className = "schedule-link";
+    link.href = scheduleUrl;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.textContent = "Cronograma en Campus ↗";
+    body.append(link);
+  }
+
+  const temarioUrl = getCampusTemarioUrl(subject.id);
+  if (temarioUrl) {
+    const link = document.createElement("a");
+    link.className = "schedule-link";
+    link.href = temarioUrl;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.textContent = "Temario oficial en Campus ↗";
+    link.title = "Abrir el temario oficial de esta asignatura en Campus";
+    body.append(link);
+  }
+
+  if (!SUMMARY_SLUGS[subject.id]) {
+    const note = document.createElement("p");
+    note.className = "summary-unavailable";
+    note.textContent = "No hay resúmenes externos disponibles para esta asignatura.";
+    body.append(note);
+  }
+
+  topics.forEach((topic) => body.append(createCurriculumTopic(subject, topic)));
+  return body;
 }
 
 function createCurriculumTopic(subject, topic) {
@@ -1579,6 +1618,7 @@ const VIEW_ROUTES = {
 
 function getViewFromUrl() {
   const match = window.location.hash.match(/^#\/([a-z-]+)/);
+  if (match?.[1] === "temario") return "progress"; // Temario ahora vive dentro de Progreso.
   return Object.keys(VIEW_ROUTES).find((view) => VIEW_ROUTES[view] === match?.[1]) || null;
 }
 
@@ -1954,6 +1994,15 @@ function celebrateIfMarking(button) {
       return;
     }
 
+    const topicsToggle = event.target.closest("button[data-toggle-topics]");
+    if (topicsToggle) {
+      const subjectId = topicsToggle.dataset.toggleTopics;
+      if (expandedSubjects.has(subjectId)) expandedSubjects.delete(subjectId);
+      else expandedSubjects.add(subjectId);
+      renderProgress();
+      return;
+    }
+
     const counter = event.target.closest("button[data-open-deadlines]");
     if (counter) openDeadlinesFor(counter.dataset.openDeadlines);
   });
@@ -1978,6 +2027,10 @@ function openDeadlinesFor(subjectId) {
 }
 
 curriculumSearch.addEventListener("input", () => renderCurriculum(curriculumSearch.value));
+document.querySelector("#progressSearch")?.addEventListener("input", (event) => {
+  progressQuery = event.target.value;
+  renderProgress();
+});
 document.querySelector("#resetButton").addEventListener("click", () => resetDialog.showModal());
 document.querySelector("#confirmResetButton").addEventListener("click", (event) => {
   event.preventDefault();
