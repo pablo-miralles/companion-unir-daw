@@ -1556,33 +1556,35 @@ h1 {
 .agenda-card {
   display: grid;
   gap: 2px;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--blue);
+  padding: 11px 14px;
   border-radius: var(--radius-sm);
-  background: var(--surface);
-}
-
-.agenda-row.is-tutoring .agenda-card {
-  border-left-color: #b8c1cc;
-  background: #f4f6f8;
+  background: var(--blue);
+  color: #fff;
 }
 
 .agenda-card strong {
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.3;
 }
 
 .agenda-card > span:last-child {
-  color: var(--muted);
+  color: rgb(255 255 255 / 85%);
   font-size: 13px;
 }
 
+.agenda-row.is-tutoring .agenda-card {
+  border: 1px solid var(--line-strong);
+  background: #e9edf2;
+  color: var(--ink);
+}
+
+.agenda-row.is-tutoring .agenda-card > span:last-child {
+  color: var(--muted);
+}
+
 .agenda-row.is-now .agenda-card {
-  border-color: color-mix(in srgb, var(--blue) 35%, white);
-  border-left-color: var(--blue);
-  background: var(--blue-soft);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #e5484d;
 }
 
 .agenda-now-badge {
