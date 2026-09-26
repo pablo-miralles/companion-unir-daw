@@ -1625,6 +1625,114 @@ h1 {
   font-size: 15px;
 }
 
+/* ───────── Cómo usar ───────── */
+
+.guide-lead {
+  max-width: 640px;
+  margin: -10px 0 28px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.guide-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  counter-reset: guide;
+}
+
+.guide-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  counter-increment: guide;
+}
+
+.guide-step h2,
+.guide-save h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.guide-step h2::before {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--blue-soft);
+  color: var(--blue-deep);
+  content: counter(guide);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.guide-step p,
+.guide-step li,
+.guide-save li {
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.guide-step p {
+  margin-bottom: 10px;
+}
+
+.guide-step ul {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 14px;
+  padding-left: 18px;
+}
+
+.guide-go {
+  margin-top: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--blue-deep);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.guide-go:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.guide-save {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px 26px;
+  border: 1px solid color-mix(in srgb, var(--blue) 25%, white);
+  border-radius: var(--radius-lg);
+  background: var(--blue-soft);
+}
+
+.guide-save ol {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding-left: 20px;
+}
+
 /* ───────── Diálogo y botones ───────── */
 
 .dialog {
@@ -1775,6 +1883,10 @@ h1 {
 }
 
 @media (max-width: 760px) {
+  .guide-steps {
+    grid-template-columns: 1fr;
+  }
+
   .header-inner,
   .page-shell {
     width: min(100% - 32px, 980px);
@@ -1875,12 +1987,19 @@ h1 {
   }
 
   .main-nav {
-    gap: 16px;
+    gap: 11px;
   }
 
   .nav-button {
     flex: 0 0 auto;
-    font-size: 13px;
+    font-size: 12.5px;
+    letter-spacing: -.01em;
+  }
+
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
   }
 
   .page-intro {

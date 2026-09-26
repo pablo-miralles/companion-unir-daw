@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-31" />
+    <link rel="stylesheet" href="styles.css?v=20260926-33" />
   </head>
   <body>
     <header class="site-header">
@@ -27,6 +27,7 @@
           <button class="nav-button" type="button" data-view="progress" aria-pressed="false">Progreso</button>
           <button class="nav-button" type="button" data-view="deadlines" aria-pressed="false">Entregas</button>
           <button class="nav-button" type="button" data-view="curriculum" aria-pressed="false">Temario</button>
+          <button class="nav-button" type="button" data-view="guide" aria-pressed="false">Cómo usar</button>
         </nav>
 
         <div class="header-progress" aria-label="Progreso total">
@@ -181,6 +182,80 @@
         </div>
         <div id="curriculumList" class="curriculum-list"></div>
       </section>
+
+      <section data-view-panel="guide" hidden>
+        <div class="page-intro">
+          <div>
+            <p class="kicker">Guía rápida</p>
+            <h1>Cómo usar el companion</h1>
+          </div>
+        </div>
+        <p class="guide-lead">
+          Te dice qué estudiar cada semana y te ayuda a llevar la cuenta de lo que llevas. No necesitas cuenta ni
+          instalar nada: todo se guarda solo en tu navegador.
+        </p>
+
+        <ol class="guide-steps">
+          <li class="guide-step">
+            <h2>Semanas</h2>
+            <p>Lo que toca estudiar cada semana en cada asignatura. Al entrar, la página te lleva a la semana actual.</p>
+            <ul>
+              <li>Pulsa <strong>«¿Estudiado?»</strong> cuando termines ese bloque.</li>
+              <li>Si marcas todas las semanas de un tema, el tema se da por completado solo.</li>
+              <li>Cada bloque enlaza al tema en Campus y a su resumen en Compendio DAW.</li>
+            </ul>
+            <button class="guide-go" type="button" data-go-view="weeks">Ir a Semanas →</button>
+          </li>
+          <li class="guide-step">
+            <h2>Entregas</h2>
+            <p>Las fechas de actividades y tests de todas las asignaturas.</p>
+            <ul>
+              <li>Pulsa <strong>«¿Entregada?»</strong> cuando entregues una actividad en Campus.</li>
+              <li>En los tests, pulsa el número de cada uno que vayas haciendo.</li>
+              <li>Todo lo que marques aquí se refleja en Progreso.</li>
+            </ul>
+            <button class="guide-go" type="button" data-go-view="deadlines">Ir a Entregas →</button>
+          </li>
+          <li class="guide-step">
+            <h2>Progreso</h2>
+            <p>El resumen de cómo vas en cada asignatura.</p>
+            <ul>
+              <li>Pulsa el número de un tema para darlo por completado (o quitarlo).</li>
+              <li>Un número medio relleno significa <strong>en progreso</strong>: has estudiado alguna de sus semanas.</li>
+              <li>Tests y actividades se marcan en Entregas; pulsa su contador para ir directo.</li>
+            </ul>
+            <button class="guide-go" type="button" data-go-view="progress">Ir a Progreso →</button>
+          </li>
+          <li class="guide-step">
+            <h2>Temario</h2>
+            <p>Todos los temas de cada asignatura, con buscador, enlace al tema en Campus y a su resumen.</p>
+            <button class="guide-go" type="button" data-go-view="curriculum">Ir a Temario →</button>
+          </li>
+        </ol>
+
+        <aside class="guide-save">
+          <h2>Cómo no perder tu progreso</h2>
+          <ol>
+            <li>
+              Tu progreso se guarda solo, pero <strong>únicamente en este navegador</strong>. En otro móvil u ordenador,
+              o en modo incógnito, empezará vacío.
+            </li>
+            <li>
+              Para tener una copia, ve a <strong>Progreso</strong> y pulsa
+              <strong>«Copiar enlace con mi progreso»</strong>. Guarda ese enlace donde quieras (Favoritos, una nota, un
+              correo…).
+            </li>
+            <li>
+              El enlace es una foto de ese momento: cuando avances, vuelve a copiarlo.
+            </li>
+            <li>
+              Si abres el enlace en un navegador que ya tiene otro progreso, te preguntará con cuál quedarte.
+              <strong>Ante la duda, pulsa «Mantener el de este navegador»</strong>: es lo que estabas viendo en la web.
+            </li>
+          </ol>
+          <button class="guide-go" type="button" data-go-view="progress">Copiar mi enlace en Progreso →</button>
+        </aside>
+      </section>
     </main>
 
     <dialog id="resetDialog" class="dialog">
@@ -235,6 +310,6 @@
     <script src="campus-links.js"></script>
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
-    <script src="app.js?v=20260926-35"></script>
+    <script src="app.js?v=20260926-36"></script>
   </body>
 </html>

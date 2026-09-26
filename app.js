@@ -1571,6 +1571,12 @@ document.querySelectorAll(".nav-button").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-go-view]").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelector(`.nav-button[data-view="${button.dataset.goView}"]`)?.click();
+  });
+});
+
 document.querySelector(".brand")?.addEventListener("click", (event) => {
   event.preventDefault();
   document.querySelector('.nav-button[data-view="weeks"]')?.click();
