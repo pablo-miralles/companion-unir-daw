@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-55" />
+    <link rel="stylesheet" href="styles.css?v=20260926-56" />
   </head>
   <body>
     <header class="site-header">
@@ -24,7 +24,6 @@
 
         <nav class="main-nav" aria-label="Vistas del panel">
           <button class="nav-button is-active" type="button" data-view="weeks" aria-pressed="true">Semanas</button>
-          <button class="nav-button" type="button" data-view="timetable" aria-pressed="false">Horario</button>
           <button class="nav-button" type="button" data-view="deadlines" aria-pressed="false">Entregas</button>
           <button class="nav-button" type="button" data-view="progress" aria-pressed="false">Progreso</button>
         </nav>
@@ -48,6 +47,15 @@
               <span>Asignatura</span>
               <select id="weeksSubjectFilter" aria-label="Filtrar semanas por asignatura"></select>
             </label>
+            <a
+              class="quiet-button quiet-link"
+              href="https://campusfp.unir.net/calendar"
+              target="_blank"
+              rel="noreferrer"
+              title="El horario cambia según la semana: consúltalo siempre en el calendario de Campus"
+            >
+              Horario de clases ↗
+            </a>
           </div>
         </div>
 
@@ -162,25 +170,6 @@
         </section>
       </section>
 
-      <section data-view-panel="timetable" hidden>
-        <div class="page-intro">
-          <div>
-            <p class="kicker">Clases en directo y tutorías · hora peninsular</p>
-            <h1>Horario</h1>
-          </div>
-        </div>
-        <div class="timetable-legend" aria-hidden="true">
-          <span><i class="is-class"></i>Clase</span>
-          <span><i class="is-tutoring"></i>Tutoría</span>
-        </div>
-        <div id="timetableGrid" class="timetable-grid" role="table" aria-label="Horario semanal"></div>
-        <div id="timetableDays" class="timetable-days"></div>
-        <section class="timetable-teachers">
-          <h2>Profesorado</h2>
-          <dl id="timetableTeachers"></dl>
-        </section>
-      </section>
-
       <section data-view-panel="deadlines" hidden>
         <div class="page-intro">
           <div>
@@ -211,7 +200,7 @@
       <section data-view-panel="guide" hidden>
         <article class="guide-article">
           <header class="guide-header">
-            <p class="kicker">Guía rápida · 4 minutos de lectura</p>
+            <p class="kicker">Guía rápida · 3 minutos de lectura</p>
             <h1>Cómo usar el companion</h1>
             <p class="guide-lead">
               Te dice qué estudiar cada semana y te ayuda a llevar la cuenta de lo que llevas. No necesitas cuenta ni
@@ -267,24 +256,15 @@
             <ul class="guide-points">
               <li>Pulsa <strong>«¿Estudiado?»</strong> cuando termines ese bloque. El bloque se atenúa para que veas qué te queda.</li>
               <li>Cuando marcas todas las semanas de un tema, el tema se da por <strong>completado</strong> solo.</li>
+              <li>
+                <strong>«Horario de clases ↗»</strong>, arriba, abre el calendario de Campus: el horario de clases y
+                tutorías cambia según la semana, así que lo más fiable es consultarlo ahí.
+              </li>
             </ul>
           </section>
 
           <section class="guide-section">
-            <h2><span>2</span>Horario: clases y tutorías</h2>
-            <p>
-              El horario semanal de clases en directo y tutorías, con el profesor de cada asignatura. El día de hoy
-              aparece destacado y una línea roja marca la hora actual.
-            </p>
-            <ul class="guide-points">
-              <li>Las <strong>clases</strong> van en azul y las <strong>tutorías</strong>, en gris.</li>
-              <li>Pulsa cualquier sesión para abrir las <strong>clases en directo</strong> de esa asignatura en Campus.</li>
-              <li>En el móvil se ve como una lista por días, empezando por hoy.</li>
-            </ul>
-          </section>
-
-          <section class="guide-section">
-            <h2><span>3</span>Entregas: actividades y tests</h2>
+            <h2><span>2</span>Entregas: actividades y tests</h2>
             <p>
               Todas las fechas de entrega, ordenadas. Cuando entregues algo en Campus, márcalo aquí para llevar la
               cuenta.
@@ -323,7 +303,7 @@
           </section>
 
           <section class="guide-section">
-            <h2><span>4</span>Progreso: cómo vas y temario</h2>
+            <h2><span>3</span>Progreso: cómo vas y temario</h2>
             <p>
               El resumen de cada asignatura: sus temas, tests y actividades. Aquí está también el
               <strong>temario completo</strong>, con un buscador arriba.
@@ -381,7 +361,7 @@
           </section>
 
           <section class="guide-section guide-section-save">
-            <h2><span>5</span>Cómo no perder tu progreso</h2>
+            <h2><span>4</span>Cómo no perder tu progreso</h2>
             <p>
               Tu progreso se guarda solo, pero <strong>únicamente en este navegador</strong>. En otro móvil u ordenador,
               o en modo incógnito, empezará vacío. Para tener una copia, ve al final de <strong>Progreso</strong> y pulsa este
@@ -475,10 +455,9 @@
     </dialog>
 
     <script src="curriculum.js"></script>
-    <script src="campus-links.js?v=20260926-2"></script>
+    <script src="campus-links.js?v=20260926-3"></script>
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
-    <script src="timetable.js?v=20260926-1"></script>
-    <script src="app.js?v=20260926-51"></script>
+    <script src="app.js?v=20260926-52"></script>
   </body>
 </html>
