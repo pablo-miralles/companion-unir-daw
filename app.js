@@ -18,8 +18,6 @@ const SUMMARY_SLUGS = {
 const weeksTimeline = document.querySelector("#weeksTimeline");
 const progressList = document.querySelector("#progressList");
 const progressSummary = document.querySelector("#progressSummary");
-const curriculumList = document.querySelector("#curriculumList");
-const curriculumSearch = document.querySelector("#curriculumSearch");
 const deadlinesList = document.querySelector("#deadlinesList");
 const nextDeadline = document.querySelector("#nextDeadline");
 const weeksSubjectFilter = document.querySelector("#weeksSubjectFilter");
@@ -492,7 +490,6 @@ function renderAll() {
   renderProgress();
   renderNextDeadline();
   renderDeadlines();
-  renderCurriculum(curriculumSearch.value);
   renderOverall();
 }
 
@@ -1225,50 +1222,6 @@ function createCounter(subjectId, kind, label, subjectState) {
   return counter;
 }
 
-function renderCurriculum(query = "") {
-  const normalizedQuery = normalizeText(query.trim());
-  const openSubjectIds = new Set(
-    Array.from(curriculumList.querySelectorAll("details[open]"), (details) => details.dataset.subjectId),
-  );
-  curriculumList.replaceChildren();
-
-  SUBJECTS.forEach((subject) => {
-    const subjectMatches = normalizeText(subject.name).includes(normalizedQuery);
-    const topics = subject.topics.filter(
-      (topic) =>
-        !normalizedQuery ||
-        subjectMatches ||
-        normalizeText(`${topic.number} ${topic.title}`).includes(normalizedQuery),
-    );
-    if (topics.length === 0) return;
-
-    const details = document.createElement("details");
-    details.className = "curriculum-subject";
-    details.dataset.subjectId = subject.id;
-    details.dataset.subject = subject.id;
-    details.open = Boolean(normalizedQuery) || openSubjectIds.has(subject.id);
-    const summary = document.createElement("summary");
-    const code = document.createElement("span");
-    code.className = "subject-code";
-    code.textContent = subject.short;
-    const title = document.createElement("h2");
-    title.textContent = subject.name;
-    summary.append(code, title);
-
-    const body = createSubjectTopicsBody(subject, topics);
-
-    details.append(summary, body);
-    curriculumList.append(details);
-  });
-
-  if (curriculumList.childElementCount === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "No hay resultados para esa búsqueda.";
-    curriculumList.append(empty);
-  }
-}
-
 function createSubjectTopicsBody(subject, topics) {
   const body = document.createElement("div");
   body.className = "curriculum-body";
@@ -1612,7 +1565,6 @@ const VIEW_ROUTES = {
   timetable: "horario",
   deadlines: "entregas",
   progress: "progreso",
-  curriculum: "temario",
   guide: "como-usar",
 };
 
@@ -1632,6 +1584,7 @@ function showView(view, { updateUrl = true } = {}) {
   document.querySelectorAll("[data-view-panel]").forEach((panel) => {
     panel.hidden = panel.dataset.viewPanel !== view;
   });
+  document.body.dataset.view = view;
   document.querySelector(`.nav-button[data-view="${view}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
   if (updateUrl && getViewFromUrl() !== view) {
     window.history.pushState(null, "", `#/${VIEW_ROUTES[view]}`);
@@ -1645,7 +1598,7 @@ document.querySelectorAll(".nav-button").forEach((button) => {
 
 document.querySelectorAll("[data-go-view]").forEach((button) => {
   button.addEventListener("click", () => {
-    document.querySelector(`.nav-button[data-view="${button.dataset.goView}"]`)?.click();
+    showView(button.dataset.goView);
   });
 });
 
@@ -1978,7 +1931,7 @@ function celebrateIfMarking(button) {
   if (button?.getAttribute("aria-pressed") === "false") launchConfetti(button);
 }
 
-[weeksTimeline, progressList, curriculumList].forEach((container) => {
+[weeksTimeline, progressList].forEach((container) => {
   container.addEventListener("click", (event) => {
     const toggle = event.target.closest("button[data-subject-id][data-topic-number]");
     if (toggle) {
@@ -2026,7 +1979,6 @@ function openDeadlinesFor(subjectId) {
   document.querySelector('.nav-button[data-view="deadlines"]')?.click();
 }
 
-curriculumSearch.addEventListener("input", () => renderCurriculum(curriculumSearch.value));
 document.querySelector("#progressSearch")?.addEventListener("input", (event) => {
   progressQuery = event.target.value;
   renderProgress();
@@ -2196,6 +2148,13 @@ renderTimetable();
 registerProgressTools();
 announceUrlStateImport();
 const initialView = getViewFromUrl() || "weeks";
+document.body.dataset.view = initialView;
+// El botón de ayuda flota encima de la barra de próxima entrega cuando esta se ve.
+if (nextDeadline && "ResizeObserver" in window) {
+  new ResizeObserver(() => {
+    document.body.style.setProperty("--deadline-bar-height", `${nextDeadline.offsetHeight}px`);
+  }).observe(nextDeadline);
+}
 if (initialView !== "weeks") showView(initialView, { updateUrl: false });
 window.setInterval(refreshCurrentWeek, 60 * 1000);
 window.setInterval(renderTimetable, 60 * 1000);

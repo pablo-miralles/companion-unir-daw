@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-52" />
+    <link rel="stylesheet" href="styles.css?v=20260926-53" />
   </head>
   <body>
     <header class="site-header">
@@ -27,7 +27,6 @@
           <button class="nav-button" type="button" data-view="timetable" aria-pressed="false">Horario</button>
           <button class="nav-button" type="button" data-view="deadlines" aria-pressed="false">Entregas</button>
           <button class="nav-button" type="button" data-view="progress" aria-pressed="false">Progreso</button>
-          <button class="nav-button" type="button" data-view="guide" aria-pressed="false" aria-label="Cómo usar"><span class="nav-label-full">Cómo usar</span><span class="nav-label-short" aria-hidden="true">Ayuda</span></button>
         </nav>
 
         <div class="header-progress" aria-label="Progreso total">
@@ -209,20 +208,6 @@
         <div id="deadlinesList" class="deadlines-list"></div>
       </section>
 
-      <section data-view-panel="curriculum" hidden>
-        <div class="page-intro curriculum-intro">
-          <div>
-            <p class="kicker">7 asignaturas · 65 temas y unidades</p>
-            <h1>Temario</h1>
-          </div>
-          <label class="search-field">
-            <span class="sr-only">Buscar en el temario</span>
-            <input id="curriculumSearch" type="search" placeholder="Buscar un tema…" autocomplete="off" />
-          </label>
-        </div>
-        <div id="curriculumList" class="curriculum-list"></div>
-      </section>
-
       <section data-view-panel="guide" hidden>
         <article class="guide-article">
           <header class="guide-header">
@@ -337,15 +322,18 @@
           </section>
 
           <section class="guide-section">
-            <h2><span>4</span>Progreso: cómo vas</h2>
-            <p>El resumen de cada asignatura: sus temas, tests y actividades.</p>
+            <h2><span>4</span>Progreso: cómo vas y temario</h2>
+            <p>
+              El resumen de cada asignatura: sus temas, tests y actividades. Aquí está también el
+              <strong>temario completo</strong>, con un buscador arriba.
+            </p>
             <p class="guide-example-label">Así se ve una asignatura con temas completados y uno en progreso:</p>
             <div class="guide-example" inert aria-hidden="true">
               <div class="progress-list">
                 <article class="progress-row" data-subject="bases-datos">
                   <div class="progress-name">
                     <span class="subject-code">BD</span>
-                    <div><strong>Bases de datos</strong><div class="subject-progress"><span style="width: 24%"></span></div></div>
+                    <div><strong>Bases de datos</strong><div class="subject-progress"><span style="width: 24%"></span></div><span class="topics-toggle" aria-expanded="false">Ver temas y enlaces</span></div>
                   </div>
                   <div class="topic-dots">
                     <span class="topic-dot is-complete">1</span><span class="topic-dot is-complete">2</span><span class="topic-dot is-progress">3</span><span class="topic-dot">4</span><span class="topic-dot">5</span><span class="topic-dot">6</span><span class="topic-dot">7</span><span class="topic-dot">8</span><span class="topic-dot">9</span><span class="topic-dot">10</span>
@@ -362,17 +350,9 @@
               <li><strong>Medio relleno:</strong> tema en progreso, has estudiado alguna de sus semanas.</li>
               <li>Tests y actividades se marcan en Entregas: pulsa su contador para ir directo.</li>
             </ul>
-          </section>
-
-          <section class="guide-section">
-            <h2><span>5</span>Temario: todos los temas</h2>
-            <p>
-              Todos los temas de cada asignatura en forma de lista, con un buscador arriba y enlaces al tema en Campus
-              y a su resumen.
-            </p>
-            <p>
-              Está <strong>sincronizado con Progreso</strong>: es la misma información vista de otra forma. Si completas
-              un tema aquí, aparece completado en Progreso, y al revés. La casilla usa los mismos estados:
+            <p class="guide-example-label">
+              Pulsa <strong>«Ver temas y enlaces»</strong> para desplegar la lista de temas, con enlaces al tema en Campus
+              y a su resumen:
             </p>
             <div class="guide-example" inert aria-hidden="true">
               <div class="curriculum-subject guide-curriculum" data-subject="bases-datos">
@@ -393,18 +373,18 @@
                 </div>
               </div>
             </div>
+            </div>
             <ul class="guide-points">
-              <li><strong>Marcada:</strong> tema completado. Pulsa la casilla para completarlo o quitarlo.</li>
-              <li><strong>Medio rellena:</strong> tema en progreso, has estudiado alguna de sus semanas.</li>
-              <li><strong>Vacía:</strong> tema pendiente.</li>
+              <li>La casilla y el número de arriba son lo mismo: marca donde te resulte más cómodo.</li>
             </ul>
           </section>
 
           <section class="guide-section guide-section-save">
-            <h2><span>6</span>Cómo no perder tu progreso</h2>
+            <h2><span>5</span>Cómo no perder tu progreso</h2>
             <p>
               Tu progreso se guarda solo, pero <strong>únicamente en este navegador</strong>. En otro móvil u ordenador,
-              o en modo incógnito, empezará vacío. Para tener una copia, ve a <strong>Progreso</strong> y pulsa este botón:
+              o en modo incógnito, empezará vacío. Para tener una copia, ve al final de <strong>Progreso</strong> y pulsa este
+              botón:
             </p>
             <div class="guide-example guide-example-inline" inert aria-hidden="true">
               <span class="button primary">Copiar enlace con mi progreso</span>
@@ -451,6 +431,11 @@
       </form>
     </dialog>
 
+    <button class="help-fab" type="button" data-go-view="guide" aria-label="Cómo usar el companion">
+      <span class="help-fab-icon" aria-hidden="true">?</span>
+      <span>Cómo usar</span>
+    </button>
+
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
     <dialog id="importDialog" class="dialog">
@@ -493,6 +478,6 @@
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
     <script src="timetable.js?v=20260926-1"></script>
-    <script src="app.js?v=20260926-48"></script>
+    <script src="app.js?v=20260926-50"></script>
   </body>
 </html>
