@@ -1661,16 +1661,28 @@ function describeSession(session) {
   };
 }
 
+// Cada sesión enlaza con las clases en directo de su asignatura en Campus.
+function createLiveLink(session, className) {
+  const url = getCampusLiveClassesUrl(session.subjectId);
+  const element = document.createElement(url ? "a" : "div");
+  element.className = className;
+  if (url) {
+    element.href = url;
+    element.target = "_blank";
+    element.rel = "noreferrer";
+  }
+  return element;
+}
+
 function createSessionCard(session) {
   const info = describeSession(session);
-  const card = document.createElement("article");
-  card.className = `timetable-session is-${session.kind}`;
+  const card = createLiveLink(session, `timetable-session is-${session.kind}`);
   card.dataset.subject = session.subjectId;
   const title = document.createElement("strong");
   title.textContent = info.name;
   const meta = document.createElement("span");
   meta.textContent = `${info.kind} · ${info.time}`;
-  card.title = `${info.name} · ${info.kind} · ${info.time}${info.teacher ? ` · ${info.teacher}` : ""}`;
+  card.title = `${info.name} · ${info.kind} · ${info.time}${info.teacher ? ` · ${info.teacher}` : ""} · Abrir clases en directo en Campus`;
   card.append(title, meta);
   if (info.teacher) {
     const teacher = document.createElement("span");
@@ -1714,8 +1726,8 @@ function createAgendaRow(session, now, isToday) {
   endTime.textContent = session.end;
   time.append(startTime, endTime);
 
-  const card = document.createElement("div");
-  card.className = "agenda-card";
+  const card = createLiveLink(session, "agenda-card");
+  card.title = `${info.name} · Abrir clases en directo en Campus`;
   const title = document.createElement("strong");
   title.textContent = info.name;
   const meta = document.createElement("span");

@@ -124,6 +124,12 @@ function getCampusTopicUrl(subjectId, topicNumber) {
   return CAMPUS_TOPIC_URLS[subjectId]?.[topicNumber] || getCampusTemarioUrl(subjectId);
 }
 
+// Clases en directo: misma herramienta (external_tools/366) dentro del curso de cada asignatura.
+function getCampusLiveClassesUrl(subjectId) {
+  const courseUrl = CAMPUS_LINKS[subjectId]?.temario?.match(/^https:\/\/campusfp\.unir\.net\/courses\/\d+/)?.[0];
+  return courseUrl ? `${courseUrl}/external_tools/366` : null;
+}
+
 function getCampusScheduleUrl(subjectId) {
   return CAMPUS_LINKS[subjectId]?.cronograma || null;
 }

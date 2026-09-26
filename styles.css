@@ -1529,6 +1529,30 @@ h1 {
   white-space: nowrap;
 }
 
+a.timetable-session,
+a.agenda-card {
+  text-decoration: none;
+  transition: filter 140ms ease, transform 140ms ease;
+}
+
+a.timetable-session:hover,
+a.agenda-card:hover {
+  filter: brightness(.94);
+}
+
+a.timetable-session:active,
+a.agenda-card:active {
+  transform: scale(.99);
+}
+
+.timetable-session strong::after,
+.agenda-card strong::after {
+  margin-left: 4px;
+  content: "↗";
+  font-weight: 600;
+  opacity: .7;
+}
+
 .timetable-session.is-class {
   background: var(--blue);
   color: #fff;
