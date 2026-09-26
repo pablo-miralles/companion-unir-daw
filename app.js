@@ -1595,29 +1595,11 @@ function showView(view, { updateUrl = true } = {}) {
     window.history.pushState(null, "", `#/${VIEW_ROUTES[view]}`);
   }
   window.scrollTo({ top: 0, behavior: "auto" });
-  showNextDeadlineBar();
 }
 
 document.querySelectorAll(".nav-button").forEach((button) => {
   button.addEventListener("click", () => showView(button.dataset.view));
 });
-
-// La barra de próxima entrega se oculta al bajar y vuelve al subir.
-let lastScrollY = window.scrollY;
-function showNextDeadlineBar() {
-  nextDeadline?.classList.remove("is-tucked");
-  lastScrollY = window.scrollY;
-}
-window.addEventListener(
-  "scroll",
-  () => {
-    const y = window.scrollY;
-    if (Math.abs(y - lastScrollY) < 6) return;
-    nextDeadline?.classList.toggle("is-tucked", y > lastScrollY && y > 80);
-    lastScrollY = y;
-  },
-  { passive: true },
-);
 
 document.querySelectorAll("[data-go-view]").forEach((button) => {
   button.addEventListener("click", () => {
