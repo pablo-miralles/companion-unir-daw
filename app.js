@@ -1624,16 +1624,82 @@ deadlinesSubjectFilter?.addEventListener("change", () => {
   renderDeadlines();
 });
 
+// Confeti al marcar algo (nunca al desmarcar). Se respeta "reducir movimiento".
+const confettiMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function launchConfetti(origin) {
+  if (confettiMotionQuery.matches || !origin) return;
+  const rect = origin.getBoundingClientRect();
+  const subjectColor = getComputedStyle(origin).getPropertyValue("--subject").trim();
+  const colors = [subjectColor || "#0a86b8", "#f5b83d", "#5ee0a0", "#ff7aa8", "#7c8cff"];
+  const canvas = document.createElement("canvas");
+  canvas.className = "confetti-canvas";
+  canvas.width = window.innerWidth * devicePixelRatio;
+  canvas.height = window.innerHeight * devicePixelRatio;
+  document.body.append(canvas);
+  const context = canvas.getContext("2d");
+  context.scale(devicePixelRatio, devicePixelRatio);
+
+  const originX = rect.left + rect.width / 2;
+  const originY = rect.top + rect.height / 2;
+  const pieces = Array.from({ length: 46 }, () => {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1;
+    const speed = 5 + Math.random() * 6;
+    return {
+      x: originX,
+      y: originY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: 5 + Math.random() * 5,
+      rotation: Math.random() * Math.PI,
+      spin: (Math.random() - 0.5) * 0.4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    };
+  });
+
+  const start = performance.now();
+  const duration = 1300;
+  const frame = (now) => {
+    const progress = (now - start) / duration;
+    context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    pieces.forEach((piece) => {
+      piece.vy += 0.28;
+      piece.vx *= 0.985;
+      piece.x += piece.vx;
+      piece.y += piece.vy;
+      piece.rotation += piece.spin;
+      context.save();
+      context.globalAlpha = Math.max(0, 1 - progress);
+      context.translate(piece.x, piece.y);
+      context.rotate(piece.rotation);
+      context.fillStyle = piece.color;
+      context.fillRect(-piece.size / 2, -piece.size / 4, piece.size, piece.size / 2);
+      context.restore();
+    });
+    if (progress < 1 && canvas.isConnected) window.requestAnimationFrame(frame);
+    else canvas.remove();
+  };
+  window.requestAnimationFrame(frame);
+  // Por si el navegador pausa la animación (pestaña en segundo plano), se retira igualmente.
+  window.setTimeout(() => canvas.remove(), duration + 200);
+}
+
+function celebrateIfMarking(button) {
+  if (button?.getAttribute("aria-pressed") === "false") launchConfetti(button);
+}
+
 [weeksTimeline, progressList, curriculumList].forEach((container) => {
   container.addEventListener("click", (event) => {
     const toggle = event.target.closest("button[data-subject-id][data-topic-number]");
     if (toggle) {
+      celebrateIfMarking(toggle);
       toggleTopic(toggle.dataset.subjectId, Number.parseInt(toggle.dataset.topicNumber, 10));
       return;
     }
 
     const weekToggle = event.target.closest("button[data-subject-id][data-week]");
     if (weekToggle) {
+      celebrateIfMarking(weekToggle);
       toggleWeek(weekToggle.dataset.subjectId, Number.parseInt(weekToggle.dataset.week, 10));
       return;
     }
@@ -1646,6 +1712,7 @@ deadlinesSubjectFilter?.addEventListener("change", () => {
 deadlinesList.addEventListener("click", (event) => {
   const control = event.target.closest("button[data-deliverable]");
   if (!control) return;
+  celebrateIfMarking(control);
   toggleDeliverable(
     control.dataset.subjectId,
     control.dataset.deliverable,
