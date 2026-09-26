@@ -1450,8 +1450,28 @@ function toggleWeek(subjectId, week) {
   subjectState.weeks = isWeekStudied(subjectId, week)
     ? subjectState.weeks.filter((item) => item !== week)
     : [...subjectState.weeks, week].sort((a, b) => a - b);
+
+  // El tema se completa solo cuando todas sus semanas están estudiadas,
+  // y vuelve a "en progreso" si se desmarca alguna.
+  const topicNumber = getStudyTopicNumber(subjectId, week);
+  const index = topicNumber - 1;
+  const allWeeksStudied = getTopicWeeks(subjectId, topicNumber).every((item) => isWeekStudied(subjectId, item));
+  const subject = SUBJECTS.find((candidate) => candidate.id === subjectId);
+  const isFeminine = subject.topicLabel === "Unidad";
+  const topicTitle = subject.topics[index]?.title;
+  const topicName = `${subject.name} · ${subject.topicLabel} ${topicNumber}${topicTitle ? ` (${topicTitle})` : ""}`;
+  let message = null;
+  if (allWeeksStudied && !subjectState.topics[index]) {
+    subjectState.topics[index] = true;
+    message = `${topicName} ${isFeminine ? "completada" : "completado"}.`;
+  } else if (!allWeeksStudied && subjectState.topics[index]) {
+    subjectState.topics[index] = false;
+    message = `${topicName} vuelve a estar en progreso.`;
+  }
+
   saveState();
   renderAll();
+  if (message) showToast(message);
 }
 
 function scrollToCurrentWeek(behavior = "smooth") {
