@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-28" />
+    <link rel="stylesheet" href="styles.css?v=20260926-29" />
   </head>
   <body>
     <header class="site-header">
@@ -90,6 +90,14 @@
             >
               Copiar enlace con mi progreso
             </button>
+            <input
+              id="shareLinkField"
+              class="share-link-field"
+              type="text"
+              readonly
+              aria-label="Enlace con tu progreso"
+              hidden
+            />
             <p id="shareState" class="share-state" aria-live="polite">
               Guárdalo en Favoritos, Notas o donde prefieras.
             </p>
@@ -186,6 +194,30 @@
       </form>
     </dialog>
 
+    <dialog id="importDialog" class="dialog">
+      <form method="dialog" class="dialog-panel">
+        <h2>¿Qué progreso quieres usar?</h2>
+        <p>
+          Has abierto un enlace con una copia de progreso distinta de la que tienes guardada en este navegador.
+        </p>
+        <dl class="import-compare">
+          <div>
+            <dt>En este navegador</dt>
+            <dd id="importLocalSummary"></dd>
+          </div>
+          <div>
+            <dt>En el enlace</dt>
+            <dd id="importLinkSummary"></dd>
+          </div>
+        </dl>
+        <p>Si usas el del enlace, sustituirá lo que tienes guardado aquí.</p>
+        <div class="dialog-actions">
+          <button value="keep" class="button secondary">Mantener el de este navegador</button>
+          <button value="link" class="button primary">Usar el del enlace</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog id="completeWeeksDialog" class="dialog">
       <form method="dialog" class="dialog-panel">
         <h2 id="completeWeeksTitle">Tema completado</h2>
@@ -201,6 +233,6 @@
     <script src="campus-links.js"></script>
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
-    <script src="app.js?v=20260926-27"></script>
+    <script src="app.js?v=20260926-28"></script>
   </body>
 </html>

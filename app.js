@@ -38,15 +38,25 @@ const copyProgressButton = document.querySelector("#copyProgressButton");
 const persistenceHint = document.querySelector("#persistenceHint");
 const resetDialog = document.querySelector("#resetDialog");
 const completeWeeksDialog = document.querySelector("#completeWeeksDialog");
+const importDialog = document.querySelector("#importDialog");
+const shareLinkField = document.querySelector("#shareLinkField");
 let pendingWeeksCompletion = null;
 
 let saveTimer = null;
 let copyFeedbackTimer = null;
 let persistenceMode = "local";
 let serverSaveQueue = Promise.resolve();
+// El progreso del enlace solo se aplica sin preguntar si este navegador no tiene otro distinto.
+// Después se limpia la barra de direcciones para que Favoritos e historial no guarden copias viejas.
 const stateFromUrl = loadStateFromUrl();
-let importedStateFromUrl = Boolean(stateFromUrl);
-let state = stateFromUrl || loadLocalState();
+clearStateFromUrl();
+const localStateAtStart = loadLocalState();
+let pendingUrlState =
+  stateFromUrl && hasProgress(localStateAtStart) && !isSameProgress(stateFromUrl, localStateAtStart)
+    ? stateFromUrl
+    : null;
+let importedStateFromUrl = Boolean(stateFromUrl) && !pendingUrlState;
+let state = importedStateFromUrl ? stateFromUrl : localStateAtStart;
 let currentRenderedWeek = null;
 let selectedWeeksSubject = "all";
 let selectedDeadlinesSubject = "all";
@@ -214,12 +224,60 @@ function getShareUrl() {
   return url.toString();
 }
 
-function syncStateUrl() {
-  const shareUrl = getShareUrl();
-  const localUrl = new URL(window.location.href);
-  localUrl.hash = new URL(shareUrl).hash;
-  window.history.replaceState(null, "", localUrl);
-  return shareUrl;
+function clearStateFromUrl() {
+  if (!window.location.hash.slice(1).startsWith(URL_STATE_HASH_PREFIX)) return;
+  const cleanUrl = new URL(window.location.href);
+  cleanUrl.hash = "";
+  window.history.replaceState(null, "", cleanUrl.pathname + cleanUrl.search);
+}
+
+function getProgressCounts(progress) {
+  const values = Object.values(progress);
+  return {
+    topics: values.reduce((sum, item) => sum + item.topics.filter(Boolean).length, 0),
+    weeks: values.reduce((sum, item) => sum + item.weeks.length, 0),
+    tests: values.reduce((sum, item) => sum + item.testsDone, 0),
+    activities: values.reduce((sum, item) => sum + item.activitiesDone, 0),
+  };
+}
+
+function hasProgress(progress) {
+  return Object.values(getProgressCounts(progress)).some((count) => count > 0);
+}
+
+function getProgressSignature(progress) {
+  return JSON.stringify(
+    SUBJECTS.map(({ id }) => {
+      const item = progress[id];
+      return [item.topics, item.weeks, item.testsDone, item.testsTotal, item.activitiesDone, item.activitiesTotal];
+    }),
+  );
+}
+
+function isSameProgress(a, b) {
+  return getProgressSignature(a) === getProgressSignature(b);
+}
+
+function describeProgress(progress) {
+  const { topics, weeks, tests, activities } = getProgressCounts(progress);
+  const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+  return [
+    plural(topics, "tema completado", "temas completados"),
+    plural(weeks, "semana estudiada", "semanas estudiadas"),
+    plural(tests, "test", "tests"),
+    plural(activities, "actividad", "actividades"),
+  ].join(", ");
+}
+
+function offerUrlStateImport() {
+  if (!pendingUrlState || !importDialog) return;
+  if (isSameProgress(pendingUrlState, state)) {
+    pendingUrlState = null;
+    return;
+  }
+  importDialog.querySelector("#importLocalSummary").textContent = describeProgress(state);
+  importDialog.querySelector("#importLinkSummary").textContent = describeProgress(pendingUrlState);
+  importDialog.showModal();
 }
 
 function clampNumber(value, min, max, fallback) {
@@ -283,7 +341,6 @@ function queueServerSnapshot(snapshot) {
 
 function saveState() {
   const snapshot = JSON.stringify(state);
-  syncStateUrl();
   markSaving();
 
   if (persistenceMode === "server") {
@@ -317,7 +374,7 @@ async function initialisePersistence() {
     if (remoteState && typeof remoteState === "object") {
       state = hydrateState(remoteState);
       renderAll();
-      syncStateUrl();
+      offerUrlStateImport();
       savedState.textContent = "Todo guardado en el archivo del proyecto";
       savedState.classList.remove("is-saving");
       return;
@@ -325,6 +382,7 @@ async function initialisePersistence() {
 
     // Primera ejecución del servidor: conserva lo que hubiera en localStorage.
     queueServerSnapshot(JSON.stringify(state));
+    offerUrlStateImport();
   } catch {
     persistenceMode = "local";
     setPersistenceHint("Guardado automático en este navegador");
@@ -334,6 +392,7 @@ async function initialisePersistence() {
       savedState.textContent = "Progreso recuperado desde el enlace";
       shareState.textContent = "Puedes seguir avanzando y crear una copia nueva cuando quieras.";
     }
+    offerUrlStateImport();
   }
 }
 
@@ -1408,7 +1467,7 @@ function copyTextFallback(value) {
 }
 
 async function copyProgressLink() {
-  const shareUrl = syncStateUrl();
+  const shareUrl = getShareUrl();
   let copied = false;
 
   try {
@@ -1420,8 +1479,16 @@ async function copyProgressLink() {
 
   shareState.textContent = copied
     ? "Enlace copiado. Al abrirlo recuperarás el progreso que tienes ahora."
-    : "No se pudo copiar automáticamente. Copia la dirección completa de la barra del navegador.";
+    : "No se pudo copiar automáticamente. Copia el enlace de aquí abajo (mantén pulsado o selecciónalo).";
   shareState.classList.toggle("is-error", !copied);
+  if (shareLinkField) {
+    shareLinkField.hidden = copied;
+    if (!copied) {
+      shareLinkField.value = shareUrl;
+      shareLinkField.focus();
+      shareLinkField.select();
+    }
+  }
 
   window.clearTimeout(copyFeedbackTimer);
   copyProgressButton.textContent = copied ? "Enlace copiado ✓" : "No se pudo copiar";
@@ -1520,6 +1587,16 @@ document.querySelector("#confirmResetButton").addEventListener("click", (event) 
 });
 resetDialog.addEventListener("click", (event) => {
   if (event.target === resetDialog) resetDialog.close();
+});
+importDialog?.addEventListener("close", () => {
+  if (importDialog.returnValue === "link" && pendingUrlState) {
+    state = pendingUrlState;
+    saveState();
+    renderAll();
+    savedState.textContent = "Progreso recuperado desde el enlace";
+  }
+  pendingUrlState = null;
+  importDialog.returnValue = "";
 });
 completeWeeksDialog?.addEventListener("click", (event) => {
   if (event.target === completeWeeksDialog) completeWeeksDialog.close();
@@ -1627,7 +1704,6 @@ function registerProgressTools() {
 populateSubjectFilter(weeksSubjectFilter);
 populateSubjectFilter(deadlinesSubjectFilter);
 renderAll();
-syncStateUrl();
 registerProgressTools();
 void initialisePersistence();
 window.requestAnimationFrame(() => scrollToCurrentWeek("auto"));
