@@ -1527,6 +1527,116 @@ h1 {
   display: none;
 }
 
+.agenda-row {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.agenda-time {
+  display: grid;
+  align-content: start;
+  gap: 1px;
+  padding-top: 11px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.agenda-time strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.agenda-time span {
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.agenda-card {
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--blue);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.agenda-row.is-tutoring .agenda-card {
+  border-left-color: #b8c1cc;
+  background: #f4f6f8;
+}
+
+.agenda-card strong {
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.agenda-card > span:last-child {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.agenda-row.is-now .agenda-card {
+  border-color: color-mix(in srgb, var(--blue) 35%, white);
+  border-left-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.agenda-now-badge {
+  justify-self: start;
+  margin-bottom: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.agenda-row.is-past {
+  opacity: .45;
+}
+
+.agenda-now {
+  position: relative;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin: 2px 0;
+}
+
+.agenda-now span {
+  color: #e5484d;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.agenda-now::after {
+  grid-column: 2;
+  height: 2px;
+  border-radius: 2px;
+  background: #e5484d;
+  content: "";
+}
+
+.agenda-now::before {
+  position: absolute;
+  top: 50%;
+  left: 55px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e5484d;
+  content: "";
+  transform: translateY(-50%);
+}
+
 .timetable-teachers {
   margin-top: 28px;
 }
@@ -2261,7 +2371,7 @@ h1 {
   }
 
   .timetable-day h2 {
-    margin: 0 0 8px;
+    margin: 0 0 4px;
     padding: 0 4px;
     color: var(--ink-soft);
     font-size: 15px;
@@ -2277,25 +2387,14 @@ h1 {
     color: #fff;
   }
 
-  .timetable-day .timetable-now-line {
-    position: relative;
-    margin: 6px 0 6px 5px;
-  }
-
   .timetable-day {
     display: grid;
     gap: 8px;
   }
 
-  .timetable-day .timetable-session {
-    margin: 0;
-    padding: 12px 14px;
+  .timetable-legend {
+    margin-bottom: 16px;
   }
-
-  .timetable-day .timetable-session.is-short .timetable-teacher {
-    display: block;
-  }
-
   .timetable-empty {
     margin: 0;
     padding: 0 4px;

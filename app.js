@@ -1702,6 +1702,52 @@ function createNowLine(minutes) {
   return line;
 }
 
+// Fila de la agenda del móvil: horas a la izquierda y tarjeta ligera a la derecha.
+function createAgendaRow(session, now, isToday) {
+  const info = describeSession(session);
+  const start = timeToMinutes(session.start);
+  const end = timeToMinutes(session.end);
+  const isNow = isToday && start <= now.minutes && now.minutes < end;
+  const isPast = isToday && end <= now.minutes;
+  const row = document.createElement("article");
+  row.className = `agenda-row is-${session.kind}${isNow ? " is-now" : ""}${isPast ? " is-past" : ""}`;
+  row.dataset.subject = session.subjectId;
+
+  const time = document.createElement("div");
+  time.className = "agenda-time";
+  const startTime = document.createElement("strong");
+  startTime.textContent = session.start;
+  const endTime = document.createElement("span");
+  endTime.textContent = session.end;
+  time.append(startTime, endTime);
+
+  const card = document.createElement("div");
+  card.className = "agenda-card";
+  const title = document.createElement("strong");
+  title.textContent = info.name;
+  const meta = document.createElement("span");
+  meta.textContent = [info.kind, info.teacher].filter(Boolean).join(" · ");
+  card.append(title, meta);
+  if (isNow) {
+    const badge = document.createElement("span");
+    badge.className = "agenda-now-badge";
+    badge.textContent = "Ahora";
+    card.prepend(badge);
+  }
+  row.append(time, card);
+  return row;
+}
+
+function createAgendaNowLine(minutes) {
+  const line = document.createElement("div");
+  line.className = "agenda-now";
+  line.setAttribute("aria-label", `Ahora, ${formatMinutes(minutes)}`);
+  const time = document.createElement("span");
+  time.textContent = formatMinutes(minutes);
+  line.append(time);
+  return line;
+}
+
 function renderTimetable() {
   const grid = document.querySelector("#timetableGrid");
   const days = document.querySelector("#timetableDays");
@@ -1789,15 +1835,20 @@ function renderTimetable() {
       empty.textContent = "Sin clases ni tutorías.";
       section.append(empty);
     }
-    let nowLineAdded = !(day === now.day);
+    const isToday = day === now.day;
+    const ongoing = isToday && daySessions.some(
+      (session) => timeToMinutes(session.start) <= now.minutes && now.minutes < timeToMinutes(session.end),
+    );
+    // La línea roja solo va en los huecos entre sesiones; si hay una en curso, esa lleva "Ahora".
+    let nowLineAdded = !isToday || ongoing;
     daySessions.forEach((session) => {
       if (!nowLineAdded && timeToMinutes(session.start) > now.minutes) {
-        section.append(createNowLine(now.minutes));
+        section.append(createAgendaNowLine(now.minutes));
         nowLineAdded = true;
       }
-      section.append(createSessionCard(session));
+      section.append(createAgendaRow(session, now, isToday));
     });
-    if (!nowLineAdded && daySessions.length > 0) section.append(createNowLine(now.minutes));
+    if (!nowLineAdded && daySessions.length > 0) section.append(createAgendaNowLine(now.minutes));
     days.append(section);
   }
 
