@@ -1570,6 +1570,7 @@ function populateSubjectFilter(select) {
 // solo sirve archivos: una ruta como /entregas daría 404.
 const VIEW_ROUTES = {
   weeks: "semanas",
+  timetable: "horario",
   deadlines: "entregas",
   progress: "progreso",
   curriculum: "temario",
@@ -1591,6 +1592,7 @@ function showView(view, { updateUrl = true } = {}) {
   document.querySelectorAll("[data-view-panel]").forEach((panel) => {
     panel.hidden = panel.dataset.viewPanel !== view;
   });
+  document.querySelector(`.nav-button[data-view="${view}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
   if (updateUrl && getViewFromUrl() !== view) {
     window.history.pushState(null, "", `#/${VIEW_ROUTES[view]}`);
   }
@@ -1623,6 +1625,207 @@ deadlinesSubjectFilter?.addEventListener("change", () => {
   selectedDeadlinesSubject = deadlinesSubjectFilter.value;
   renderDeadlines();
 });
+
+// ───────── Horario ─────────
+const WEEKDAY_NAMES = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+const TIMETABLE_KIND_LABELS = { class: "Clase", tutoring: "Tutoría" };
+
+function timeToMinutes(value) {
+  const [hours, minutes] = value.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+// El horario está en hora peninsular: se calcula "ahora" en Europe/Madrid
+// para que funcione igual aunque el dispositivo esté en otra zona horaria.
+function getMadridNow() {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Europe/Madrid",
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date())
+      .map((part) => [part.type, part.value]),
+  );
+  const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(parts.weekday);
+  return { day, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+}
+
+function getSortedSessions() {
+  return [...TIMETABLE].sort((a, b) => a.day - b.day || timeToMinutes(a.start) - timeToMinutes(b.start));
+}
+
+function getTimetableStatus() {
+  const now = getMadridNow();
+  const sessions = getSortedSessions();
+  const current = sessions.find(
+    (session) =>
+      session.day === now.day &&
+      timeToMinutes(session.start) <= now.minutes &&
+      now.minutes < timeToMinutes(session.end),
+  );
+  const upcoming =
+    sessions.find(
+      (session) =>
+        session.day > now.day || (session.day === now.day && timeToMinutes(session.start) > now.minutes),
+    ) || sessions[0];
+  return { now, current, upcoming };
+}
+
+function describeSession(session) {
+  const subject = SUBJECTS.find((candidate) => candidate.id === session.subjectId);
+  return {
+    subject,
+    name: subject?.name || session.subjectId,
+    kind: TIMETABLE_KIND_LABELS[session.kind],
+    time: `${session.start}–${session.end}`,
+    teacher: TEACHERS[session.subjectId] || "",
+  };
+}
+
+function createSessionCard(session, status) {
+  const info = describeSession(session);
+  const card = document.createElement("article");
+  const isNow = status.current === session;
+  const isNext = !status.current && status.upcoming === session;
+  card.className = `timetable-session is-${session.kind}${isNow ? " is-now" : ""}${isNext ? " is-next" : ""}`;
+  card.dataset.subject = session.subjectId;
+  const title = document.createElement("strong");
+  title.textContent = info.name;
+  const meta = document.createElement("span");
+  meta.textContent = `${info.kind} · ${info.time}`;
+  card.title = `${info.name} · ${info.kind} · ${info.time}${info.teacher ? ` · ${info.teacher}` : ""}`;
+  card.append(title, meta);
+  if (info.teacher) {
+    const teacher = document.createElement("span");
+    teacher.className = "timetable-teacher";
+    teacher.textContent = info.teacher;
+    card.append(teacher);
+  }
+  return card;
+}
+
+function renderTimetableNow(status) {
+  const box = document.querySelector("#timetableNow");
+  if (!box) return;
+  box.replaceChildren();
+  const session = status.current || status.upcoming;
+  if (!session) return;
+  const info = describeSession(session);
+  const label = document.createElement("span");
+  label.className = "timetable-now-label";
+  if (status.current) {
+    label.textContent = `Ahora · hasta las ${session.end}`;
+  } else {
+    const daysAhead = (session.day - status.now.day + 7) % 7;
+    const when = daysAhead === 0 ? "hoy" : daysAhead === 1 ? "mañana" : `el ${WEEKDAY_NAMES[session.day]}`;
+    label.textContent = `Siguiente · ${when}`;
+  }
+  const title = document.createElement("strong");
+  title.textContent = info.name;
+  const meta = document.createElement("span");
+  meta.textContent = [info.kind, info.time, info.teacher].filter(Boolean).join(" · ");
+  box.classList.toggle("is-live", Boolean(status.current));
+  box.dataset.subject = session.subjectId;
+  box.append(label, title, meta);
+}
+
+function renderTimetable() {
+  const grid = document.querySelector("#timetableGrid");
+  const days = document.querySelector("#timetableDays");
+  const teachers = document.querySelector("#timetableTeachers");
+  if (!grid || !days) return;
+  const status = getTimetableStatus();
+  renderTimetableNow(status);
+
+  // Cuadrícula (escritorio): filas de 30 minutos entre la primera y la última sesión.
+  const sessions = getSortedSessions();
+  const firstStart = Math.floor(Math.min(...sessions.map((s) => timeToMinutes(s.start))) / 60) * 60;
+  const lastEnd = Math.ceil(Math.max(...sessions.map((s) => timeToMinutes(s.end))) / 60) * 60;
+  const slots = (lastEnd - firstStart) / 30;
+  grid.replaceChildren();
+  grid.style.setProperty("--timetable-slots", String(slots));
+
+  const corner = document.createElement("span");
+  corner.className = "timetable-corner";
+  grid.append(corner);
+  for (let day = 1; day <= 5; day += 1) {
+    const heading = document.createElement("span");
+    heading.className = `timetable-day-heading${day === status.now.day ? " is-today" : ""}`;
+    heading.style.gridColumn = String(day + 1);
+    heading.textContent = WEEKDAY_NAMES[day];
+    heading.setAttribute("role", "columnheader");
+    grid.append(heading);
+    if (day === status.now.day) {
+      const todayColumn = document.createElement("span");
+      todayColumn.className = "timetable-today-column";
+      todayColumn.style.gridColumn = String(day + 1);
+      todayColumn.style.gridRow = `2 / span ${slots}`;
+      grid.append(todayColumn);
+    }
+  }
+  for (let slot = 0; slot < slots; slot += 2) {
+    const minutes = firstStart + slot * 30;
+    const label = document.createElement("span");
+    label.className = "timetable-hour";
+    label.style.gridRow = `${slot + 2} / span 2`;
+    label.textContent = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:00`;
+    grid.append(label);
+  }
+  sessions.forEach((session) => {
+    const card = createSessionCard(session, status);
+    const startRow = (timeToMinutes(session.start) - firstStart) / 30 + 2;
+    const span = (timeToMinutes(session.end) - timeToMinutes(session.start)) / 30;
+    card.style.gridColumn = String(session.day + 1);
+    card.style.gridRow = `${startRow} / span ${span}`;
+    card.classList.toggle("is-short", span === 1);
+    grid.append(card);
+  });
+
+  // Lista por días (móvil), empezando por hoy (o por el lunes en fin de semana).
+  days.replaceChildren();
+  const startDay = status.now.day >= 1 && status.now.day <= 5 ? status.now.day : 1;
+  for (let offset = 0; offset < 5; offset += 1) {
+    const day = ((startDay - 1 + offset) % 5) + 1;
+    const section = document.createElement("section");
+    section.className = `timetable-day${day === status.now.day ? " is-today" : ""}`;
+    const heading = document.createElement("h2");
+    heading.textContent = day === status.now.day ? `Hoy · ${WEEKDAY_NAMES[day]}` : WEEKDAY_NAMES[day];
+    section.append(heading);
+    const daySessions = sessions.filter((session) => session.day === day);
+    if (daySessions.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "timetable-empty";
+      empty.textContent = "Sin clases ni tutorías.";
+      section.append(empty);
+    }
+    daySessions.forEach((session) => section.append(createSessionCard(session, status)));
+    days.append(section);
+  }
+
+  if (teachers && teachers.childElementCount === 0) {
+    SUBJECTS.forEach((subject) => {
+      if (!TEACHERS[subject.id]) return;
+      const row = document.createElement("div");
+      row.dataset.subject = subject.id;
+      const name = document.createElement("dt");
+      name.textContent = subject.name;
+      const teacher = document.createElement("dd");
+      teacher.textContent = TEACHERS[subject.id];
+      row.append(name, teacher);
+      teachers.append(row);
+    });
+    const tutorRow = document.createElement("div");
+    const tutorName = document.createElement("dt");
+    tutorName.textContent = "Tutor del grupo";
+    const tutor = document.createElement("dd");
+    tutor.textContent = TUTOR;
+    tutorRow.append(tutorName, tutor);
+    teachers.append(tutorRow);
+  }
+}
 
 // Confeti al marcar algo (nunca al desmarcar). Se respeta "reducir movimiento".
 const confettiMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -1889,11 +2092,13 @@ if (pullCompendioReadTopics()) saveLocalSnapshot(JSON.stringify(state));
 populateSubjectFilter(weeksSubjectFilter);
 populateSubjectFilter(deadlinesSubjectFilter);
 renderAll();
+renderTimetable();
 registerProgressTools();
 announceUrlStateImport();
 const initialView = getViewFromUrl() || "weeks";
 if (initialView !== "weeks") showView(initialView, { updateUrl: false });
 window.setInterval(refreshCurrentWeek, 60 * 1000);
+window.setInterval(renderTimetable, 60 * 1000);
 window.addEventListener("focus", refreshCurrentWeek);
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) refreshCurrentWeek();

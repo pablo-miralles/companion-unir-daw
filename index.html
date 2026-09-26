@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-43" />
+    <link rel="stylesheet" href="styles.css?v=20260926-45" />
   </head>
   <body>
     <header class="site-header">
@@ -24,10 +24,11 @@
 
         <nav class="main-nav" aria-label="Vistas del panel">
           <button class="nav-button is-active" type="button" data-view="weeks" aria-pressed="true">Semanas</button>
+          <button class="nav-button" type="button" data-view="timetable" aria-pressed="false">Horario</button>
           <button class="nav-button" type="button" data-view="deadlines" aria-pressed="false">Entregas</button>
           <button class="nav-button" type="button" data-view="progress" aria-pressed="false">Progreso</button>
           <button class="nav-button" type="button" data-view="curriculum" aria-pressed="false">Temario</button>
-          <button class="nav-button" type="button" data-view="guide" aria-pressed="false">Cómo usar</button>
+          <button class="nav-button" type="button" data-view="guide" aria-pressed="false" aria-label="Cómo usar"><span class="nav-label-full">Cómo usar</span><span class="nav-label-short" aria-hidden="true">Ayuda</span></button>
         </nav>
 
         <div class="header-progress" aria-label="Progreso total">
@@ -149,6 +150,26 @@
         <div id="progressList" class="progress-list"></div>
       </section>
 
+      <section data-view-panel="timetable" hidden>
+        <div class="page-intro">
+          <div>
+            <p class="kicker">Clases en directo y tutorías · hora peninsular</p>
+            <h1>Horario</h1>
+          </div>
+        </div>
+        <aside id="timetableNow" class="timetable-now" aria-live="polite"></aside>
+        <div class="timetable-legend" aria-hidden="true">
+          <span><i class="is-class"></i>Clase</span>
+          <span><i class="is-tutoring"></i>Tutoría</span>
+        </div>
+        <div id="timetableGrid" class="timetable-grid" role="table" aria-label="Horario semanal"></div>
+        <div id="timetableDays" class="timetable-days"></div>
+        <section class="timetable-teachers">
+          <h2>Profesorado</h2>
+          <dl id="timetableTeachers"></dl>
+        </section>
+      </section>
+
       <section data-view-panel="deadlines" hidden>
         <div class="page-intro">
           <div>
@@ -193,7 +214,7 @@
       <section data-view-panel="guide" hidden>
         <article class="guide-article">
           <header class="guide-header">
-            <p class="kicker">Guía rápida · 3 minutos de lectura</p>
+            <p class="kicker">Guía rápida · 4 minutos de lectura</p>
             <h1>Cómo usar el companion</h1>
             <p class="guide-lead">
               Te dice qué estudiar cada semana y te ayuda a llevar la cuenta de lo que llevas. No necesitas cuenta ni
@@ -253,7 +274,26 @@
           </section>
 
           <section class="guide-section">
-            <h2><span>2</span>Entregas: actividades y tests</h2>
+            <h2><span>2</span>Horario: clases y tutorías</h2>
+            <p>
+              El horario semanal de clases en directo y tutorías, con el profesor de cada asignatura. Arriba te dice qué
+              hay ahora mismo o cuál es la siguiente sesión.
+            </p>
+            <div class="guide-example" inert aria-hidden="true">
+              <div class="timetable-now">
+                <span class="timetable-now-label">Siguiente · hoy</span>
+                <strong>Bases de datos</strong>
+                <span>Clase · 18:00–19:00 · Carlos R.</span>
+              </div>
+            </div>
+            <ul class="guide-points">
+              <li>Las <strong>clases</strong> van en azul y las <strong>tutorías</strong>, en gris.</li>
+              <li>En el móvil se ve como una lista por días, empezando por hoy.</li>
+            </ul>
+          </section>
+
+          <section class="guide-section">
+            <h2><span>3</span>Entregas: actividades y tests</h2>
             <p>
               Todas las fechas de entrega, ordenadas. Cuando entregues algo en Campus, márcalo aquí para llevar la
               cuenta.
@@ -292,7 +332,7 @@
           </section>
 
           <section class="guide-section">
-            <h2><span>3</span>Progreso: cómo vas</h2>
+            <h2><span>4</span>Progreso: cómo vas</h2>
             <p>El resumen de cada asignatura: sus temas, tests y actividades.</p>
             <p class="guide-example-label">Así se ve una asignatura con temas completados y uno en progreso:</p>
             <div class="guide-example" inert aria-hidden="true">
@@ -320,7 +360,7 @@
           </section>
 
           <section class="guide-section">
-            <h2><span>4</span>Temario: todos los temas</h2>
+            <h2><span>5</span>Temario: todos los temas</h2>
             <p>
               Todos los temas de cada asignatura en forma de lista, con un buscador arriba y enlaces al tema en Campus
               y a su resumen.
@@ -356,7 +396,7 @@
           </section>
 
           <section class="guide-section guide-section-save">
-            <h2><span>5</span>Cómo no perder tu progreso</h2>
+            <h2><span>6</span>Cómo no perder tu progreso</h2>
             <p>
               Tu progreso se guarda solo, pero <strong>únicamente en este navegador</strong>. En otro móvil u ordenador,
               o en modo incógnito, empezará vacío. Para tener una copia, ve a <strong>Progreso</strong> y pulsa este botón:
@@ -447,6 +487,7 @@
     <script src="campus-links.js"></script>
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
-    <script src="app.js?v=20260926-42"></script>
+    <script src="timetable.js?v=20260926-1"></script>
+    <script src="app.js?v=20260926-44"></script>
   </body>
 </html>
