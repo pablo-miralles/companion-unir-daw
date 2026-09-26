@@ -1766,6 +1766,12 @@ function renderTimetable() {
       grid.append(todayColumn);
     }
   }
+  for (let slot = 0; slot < slots; slot += 1) {
+    const line = document.createElement("span");
+    line.className = `timetable-line${slot % 2 ? " is-half" : ""}`;
+    line.style.gridRow = String(slot + 2);
+    grid.append(line);
+  }
   for (let slot = 0; slot < slots; slot += 2) {
     const minutes = firstStart + slot * 30;
     const label = document.createElement("span");
