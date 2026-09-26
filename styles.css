@@ -475,6 +475,26 @@ h1 {
 
 /* ───────── Semanas ───────── */
 
+.weeks-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -8px 0 26px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.weeks-note .current-label {
+  flex: 0 0 auto;
+  order: 0;
+  margin: 0;
+}
+
 .weeks-timeline {
   display: grid;
   gap: 30px;
@@ -2140,6 +2160,14 @@ h1 {
 
   .current-label {
     order: 3;
+  }
+
+  .weeks-note {
+    align-items: flex-start;
+  }
+
+  .weeks-note .current-label {
+    order: 0;
   }
 
   .next-deadline {
