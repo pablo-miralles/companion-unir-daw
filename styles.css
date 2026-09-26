@@ -1150,73 +1150,42 @@ h1 {
 
 .counter {
   display: grid;
-  grid-template-columns: 82px 26px 44px 26px;
+  grid-template-columns: 82px 44px 14px;
   align-items: center;
   gap: 4px;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--muted);
+  cursor: pointer;
   font-size: 13px;
+  text-align: left;
+  transition: background 140ms ease, color 140ms ease;
 }
 
 .counter strong {
   color: var(--ink);
-  text-align: center;
+  text-align: right;
   font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
 
-.counter-value {
-  cursor: text;
-  border-bottom: 1px dashed var(--line-strong);
-}
-
-.counter-value:hover,
-.counter-value:focus-visible {
-  color: var(--blue);
-  outline: none;
-  border-bottom-color: var(--blue);
-}
-
-.counter-total-input {
-  width: 44px;
-  height: 26px;
-  box-sizing: border-box;
-  padding: 0 2px;
-  border: 1px solid var(--blue);
-  border-radius: 6px;
-  color: var(--ink);
-  background: #fff;
-  font: inherit;
-  font-size: 13px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.counter-total-input:focus {
-  outline: 3px solid var(--blue-soft);
-  outline-offset: 0;
-}
-
-.counter button {
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-size: 14px;
+.counter-arrow {
+  color: var(--faint);
+  font-size: 16px;
   line-height: 1;
-  transition: border-color 140ms ease, background 140ms ease;
+  text-align: right;
 }
 
-.counter button:not(:disabled):hover {
-  border-color: var(--ink);
+.counter:hover {
+  background: var(--soft);
+  color: var(--ink);
 }
 
-.counter button:disabled {
-  cursor: default;
-  opacity: .35;
+.counter:hover .counter-arrow {
+  color: var(--ink);
 }
 
 .counter-empty {
@@ -1407,6 +1376,72 @@ h1 {
   border-color: var(--subject, var(--blue));
   background: var(--subject-soft, var(--blue-soft));
   color: var(--subject, var(--blue));
+}
+
+.deadline-row {
+  grid-template-columns: 32px minmax(0, 1fr) auto auto;
+}
+
+.deadline-row.is-tests {
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+}
+
+.deadline-row.is-tests .test-checks {
+  grid-column: 2 / -1;
+}
+
+.deadline-row.is-done .subject-code,
+.deadline-row.is-done .deadline-content,
+.deadline-row.is-done .deadline-details {
+  opacity: .5;
+}
+
+.deadline-row.is-done .deadline-content strong::before {
+  margin-right: 7px;
+  color: var(--subject, var(--green));
+  content: "✓";
+  font-weight: 800;
+}
+
+.test-checks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.test-checks-count {
+  min-width: 78px;
+  margin-right: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.test-check {
+  width: 32px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.test-check:hover {
+  border-color: var(--subject, var(--line-strong));
+  color: var(--ink);
+}
+
+.test-check.is-complete {
+  border-color: var(--subject, var(--blue));
+  background: var(--subject, var(--blue));
+  color: #fff;
 }
 
 .deadlines-missing,
@@ -1798,6 +1833,12 @@ h1 {
     grid-column: 2;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .deadline-row .deliverable-check,
+  .deadline-row .test-checks {
+    grid-column: 2 / -1;
+    justify-self: start;
   }
 
   .subject-label {

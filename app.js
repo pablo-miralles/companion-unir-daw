@@ -16,16 +16,6 @@ const SUMMARY_SLUGS = {
   "sistemas-informaticos": "si",
 };
 
-const LEGACY_DEFAULTS = {
-  "bases-datos": { testsTotal: 4, activitiesTotal: 3 },
-  "entornos-desarrollo": { testsTotal: 4, activitiesTotal: 2 },
-  ingles: { testsTotal: 5, activitiesTotal: 3 },
-  empleabilidad: { testsTotal: 4, activitiesTotal: 3 },
-  "lenguajes-marcas": { testsTotal: 5, activitiesTotal: 4 },
-  programacion: { testsTotal: 5, activitiesTotal: 4 },
-  "sistemas-informaticos": { testsTotal: 4, activitiesTotal: 3 },
-};
-
 const weeksTimeline = document.querySelector("#weeksTimeline");
 const progressList = document.querySelector("#progressList");
 const progressSummary = document.querySelector("#progressSummary");
@@ -71,6 +61,8 @@ function createInitialState() {
       {
         topics: Array(subject.topics.length).fill(false),
         weeks: [],
+        tests: Array(subject.testsTotal).fill(false),
+        activities: Array(subject.activitiesTotal).fill(false),
         testsDone: 0,
         testsTotal: subject.testsTotal,
         activitiesDone: 0,
@@ -92,33 +84,49 @@ function hydrateState(stored) {
     const topics = Array.isArray(current.topics)
       ? Array.from({ length: subject.topics.length }, (_, index) => Boolean(current.topics[index]))
       : initial[subject.id].topics;
-    const legacy = LEGACY_DEFAULTS[subject.id];
-    const storedTestsTotal = clampNumber(current.testsTotal, 0, 30, subject.testsTotal);
-    const storedActivitiesTotal = clampNumber(current.activitiesTotal, 0, 30, subject.activitiesTotal);
-    const testsTotal = storedTestsTotal === legacy?.testsTotal ? subject.testsTotal : storedTestsTotal;
-    const activitiesTotal =
-      storedActivitiesTotal === legacy?.activitiesTotal
-        ? subject.activitiesTotal
-        : storedActivitiesTotal;
-
     const studyWeeks = WEEKLY_STUDY[subject.id] || {};
     const weeks = Array.isArray(current.weeks)
       ? [...new Set(current.weeks.map(Number))]
           .filter((week) => Number.isInteger(week) && studyWeeks[week])
           .sort((a, b) => a - b)
       : [];
+    // Tests y actividades se marcan uno a uno en Entregas. Los contadores antiguos
+    // (solo "cuántos") se convierten en los primeros N elementos marcados.
+    const tests = hydrateChecklist(current.tests, current.testsDone, subject.testsTotal);
+    const activities = hydrateChecklist(current.activities, current.activitiesDone, subject.activitiesTotal);
 
     initial[subject.id] = {
       topics,
       weeks,
-      testsTotal,
-      testsDone: clampNumber(current.testsDone, 0, testsTotal, 0),
-      activitiesTotal,
-      activitiesDone: clampNumber(current.activitiesDone, 0, activitiesTotal, 0),
+      tests,
+      activities,
+      testsTotal: subject.testsTotal,
+      testsDone: tests.filter(Boolean).length,
+      activitiesTotal: subject.activitiesTotal,
+      activitiesDone: activities.filter(Boolean).length,
     };
   });
 
   return initial;
+}
+
+function hydrateChecklist(items, legacyCount, total) {
+  if (Array.isArray(items)) return Array.from({ length: total }, (_, index) => Boolean(items[index]));
+  const done = clampNumber(legacyCount, 0, total, 0);
+  return Array.from({ length: total }, (_, index) => index < done);
+}
+
+function syncChecklistCounts(subjectState) {
+  subjectState.testsDone = subjectState.tests.filter(Boolean).length;
+  subjectState.activitiesDone = subjectState.activities.filter(Boolean).length;
+}
+
+function toMask(items) {
+  return items.reduce((mask, done, index) => (done ? mask | (1 << index) : mask), 0);
+}
+
+function fromMask(mask, length) {
+  return Array.from({ length }, (_, index) => Boolean(mask & (1 << index)));
 }
 
 function loadLocalState() {
@@ -167,6 +175,8 @@ function createUrlStatePayload() {
             subjectState.activitiesDone,
             subjectState.activitiesTotal,
             weekMask,
+            toMask(subjectState.tests),
+            toMask(subjectState.activities),
           ],
         ];
       }),
@@ -182,8 +192,9 @@ function hydrateUrlState(payload) {
   const decoded = {};
   SUBJECTS.forEach((subject) => {
     const values = payload.d[subject.id];
-    if (!Array.isArray(values) || (values.length !== 5 && values.length !== 6)) return;
-    const [topicMask, testsDone, testsTotal, activitiesDone, activitiesTotal, weekMask = 0] = values;
+    if (!Array.isArray(values) || values.length < 5 || values.length > 8) return;
+    const [topicMask, testsDone, testsTotal, activitiesDone, activitiesTotal, weekMask = 0, testMask, activityMask] =
+      values;
     if (!Number.isInteger(topicMask) || topicMask < 0) return;
     const weeks = Number.isSafeInteger(weekMask) && weekMask > 0
       ? Array.from({ length: 32 }, (_, index) => index + 1).filter(
@@ -196,6 +207,11 @@ function hydrateUrlState(payload) {
         (_, index) => Boolean(topicMask & (1 << index)),
       ),
       weeks,
+      tests: Number.isInteger(testMask) && testMask >= 0 ? fromMask(testMask, subject.testsTotal) : undefined,
+      activities:
+        Number.isInteger(activityMask) && activityMask >= 0
+          ? fromMask(activityMask, subject.activitiesTotal)
+          : undefined,
       testsDone,
       testsTotal,
       activitiesDone,
@@ -252,7 +268,7 @@ function getProgressSignature(progress) {
   return JSON.stringify(
     SUBJECTS.map(({ id }) => {
       const item = progress[id];
-      return [item.topics, item.weeks, item.testsDone, item.testsTotal, item.activitiesDone, item.activitiesTotal];
+      return [item.topics, item.weeks, item.tests, item.activities];
     }),
   );
 }
@@ -923,7 +939,7 @@ function renderNextDeadline() {
       (deadline) =>
         selectedWeeksSubject === "all" || deadline.subjectId === selectedWeeksSubject,
     )
-    .filter((deadline) => new Date(deadline.due) >= now)
+    .filter((deadline) => new Date(deadline.due) >= now && !isDeliverableDone(deadline))
     .sort((a, b) => new Date(a.due) - new Date(b.due))[0];
 
   if (!upcoming) {
@@ -984,6 +1000,83 @@ function renderNextDeadline() {
   nextDeadline.append(due, content, link);
 }
 
+function getSubjectActivities(subjectId) {
+  return DEADLINES.filter(
+    (deadline) => deadline.subjectId === subjectId && deadline.type !== "Tests",
+  ).sort((a, b) => new Date(a.due) - new Date(b.due));
+}
+
+function getActivityIndex(deadline) {
+  return getSubjectActivities(deadline.subjectId).indexOf(deadline);
+}
+
+function isDeliverableDone(deadline) {
+  const subjectState = state[deadline.subjectId];
+  if (!subjectState) return false;
+  if (deadline.type === "Tests") return subjectState.tests.length > 0 && subjectState.tests.every(Boolean);
+  return Boolean(subjectState.activities[getActivityIndex(deadline)]);
+}
+
+function toggleDeliverable(subjectId, kind, index) {
+  const subjectState = state[subjectId];
+  const list = kind === "test" ? subjectState?.tests : subjectState?.activities;
+  if (!list || index < 0 || index >= list.length) return;
+  list[index] = !list[index];
+  syncChecklistCounts(subjectState);
+  saveState();
+  renderAll();
+}
+
+function createDeliverableControl(deadline, subject) {
+  const subjectState = state[subject.id];
+  if (deadline.type === "Tests") {
+    const wrap = document.createElement("div");
+    wrap.className = "test-checks";
+    wrap.setAttribute("role", "group");
+    wrap.setAttribute("aria-label", `Tests hechos de ${subject.name}`);
+    const count = document.createElement("span");
+    count.className = "test-checks-count";
+    count.textContent = `${subjectState.testsDone}/${subjectState.testsTotal} hechos`;
+    wrap.append(count);
+    subjectState.tests.forEach((done, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `test-check${done ? " is-complete" : ""}`;
+      button.dataset.deliverable = "test";
+      button.dataset.subjectId = subject.id;
+      button.dataset.index = String(index);
+      button.setAttribute("aria-pressed", String(done));
+      button.setAttribute(
+        "aria-label",
+        `Test del ${subject.topicLabel.toLowerCase()} ${index + 1}: ${done ? "hecho" : "pendiente"}`,
+      );
+      button.title = `Test del ${subject.topicLabel.toLowerCase()} ${index + 1}`;
+      button.textContent = String(index + 1);
+      wrap.append(button);
+    });
+    return wrap;
+  }
+
+  const index = getActivityIndex(deadline);
+  const done = Boolean(subjectState.activities[index]);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `week-check deliverable-check${done ? " is-complete" : ""}`;
+  button.dataset.deliverable = "activity";
+  button.dataset.subjectId = subject.id;
+  button.dataset.index = String(index);
+  button.setAttribute("aria-pressed", String(done));
+  button.setAttribute("aria-label", `${deadline.title} de ${subject.name} entregada`);
+  const box = document.createElement("span");
+  box.className = "week-check-box";
+  box.setAttribute("aria-hidden", "true");
+  box.textContent = "✓";
+  const text = document.createElement("span");
+  text.textContent = done ? "Entregada" : "¿Entregada?";
+  button.append(box, text);
+  return button;
+}
+
 function renderDeadlines() {
   if (!deadlinesList) return;
   deadlinesList.replaceChildren();
@@ -1038,7 +1131,8 @@ function renderDeadlines() {
       if (!subject) return;
 
       const row = document.createElement("article");
-      row.className = `deadline-row${new Date(deadline.due) < now ? " is-past" : ""}`;
+      const done = isDeliverableDone(deadline);
+      row.className = `deadline-row${new Date(deadline.due) < now ? " is-past" : ""}${done ? " is-done" : ""}${deadline.type === "Tests" ? " is-tests" : ""}`;
       row.dataset.subject = subject.id;
 
       const code = document.createElement("span");
@@ -1075,7 +1169,7 @@ function renderDeadlines() {
         campusLink.title = "Abrir esta entrega o el listado de tests en Campus";
         details.append(campusLink);
       }
-      row.append(code, content, details);
+      row.append(code, content, details, createDeliverableControl(deadline, subject));
       items.append(row);
     });
     section.append(heading, items);
@@ -1125,38 +1219,23 @@ function renderDeadlines() {
 }
 
 function createCounter(subjectId, kind, label, subjectState) {
-  const doneKey = `${kind}Done`;
-  const totalKey = `${kind}Total`;
-  const counter = document.createElement("div");
+  const done = subjectState[`${kind}Done`];
+  const total = subjectState[`${kind}Total`];
+  const counter = document.createElement("button");
+  counter.type = "button";
   counter.className = "counter";
+  counter.dataset.openDeadlines = subjectId;
+  counter.title = `Marca los ${label.toLowerCase()} en la pestaña Entregas`;
+  counter.setAttribute("aria-label", `${label}: ${done} de ${total}. Abrir en Entregas para marcarlos`);
   const name = document.createElement("span");
   name.textContent = label;
-  const decrease = document.createElement("button");
-  decrease.type = "button";
-  decrease.dataset.subjectId = subjectId;
-  decrease.dataset.kind = kind;
-  decrease.dataset.change = "-1";
-  decrease.disabled = subjectState[doneKey] === 0;
-  decrease.setAttribute("aria-label", `Restar ${label.toLowerCase()}`);
-  decrease.textContent = "−";
   const value = document.createElement("strong");
-  value.className = "counter-value";
-  value.dataset.subjectId = subjectId;
-  value.dataset.kind = kind;
-  value.title = "Doble clic para editar el total";
-  value.setAttribute("role", "button");
-  value.setAttribute("tabindex", "0");
-  value.setAttribute("aria-label", `Doble clic para editar el total de ${label.toLowerCase()}`);
-  value.textContent = `${subjectState[doneKey]}/${subjectState[totalKey]}`;
-  const increase = document.createElement("button");
-  increase.type = "button";
-  increase.dataset.subjectId = subjectId;
-  increase.dataset.kind = kind;
-  increase.dataset.change = "1";
-  increase.disabled = subjectState[doneKey] >= subjectState[totalKey];
-  increase.setAttribute("aria-label", `Sumar ${label.toLowerCase()}`);
-  increase.textContent = "+";
-  counter.append(name, decrease, value, increase);
+  value.textContent = `${done}/${total}`;
+  const arrow = document.createElement("span");
+  arrow.className = "counter-arrow";
+  arrow.setAttribute("aria-hidden", "true");
+  arrow.textContent = "›";
+  counter.append(name, value, arrow);
   return counter;
 }
 
@@ -1450,78 +1529,6 @@ function toggleWeek(subjectId, week) {
   renderAll();
 }
 
-function updateCounter(subjectId, kind, change) {
-  const subjectState = state[subjectId];
-  if (!subjectState || !["tests", "activities"].includes(kind)) return;
-  const doneKey = `${kind}Done`;
-  const totalKey = `${kind}Total`;
-  subjectState[doneKey] = Math.min(
-    subjectState[totalKey],
-    Math.max(0, subjectState[doneKey] + change),
-  );
-  saveState();
-  renderAll();
-}
-
-function beginCounterTotalEdit(valueElement) {
-  const subjectId = valueElement.dataset.subjectId;
-  const kind = valueElement.dataset.kind;
-  const subjectState = state[subjectId];
-  if (!subjectState || !["tests", "activities"].includes(kind)) return;
-
-  const totalKey = `${kind}Total`;
-  const doneKey = `${kind}Done`;
-  const input = document.createElement("input");
-  input.className = "counter-total-input";
-  input.type = "number";
-  input.min = "0";
-  input.max = "30";
-  input.step = "1";
-  input.inputMode = "numeric";
-  input.value = String(subjectState[totalKey]);
-  input.setAttribute("aria-label", `Total de ${kind === "tests" ? "tests" : "actividades"}`);
-
-  let finished = false;
-  const finish = (commit) => {
-    if (finished) return;
-    finished = true;
-
-    if (!commit) {
-      renderAll();
-      return;
-    }
-
-    const nextTotal = Number.parseInt(input.value, 10);
-    if (!Number.isInteger(nextTotal) || nextTotal < 0 || nextTotal > 30) {
-      savedState.textContent = "El total debe ser un entero entre 0 y 30";
-      savedState.classList.remove("is-saving");
-      renderAll();
-      return;
-    }
-
-    subjectState[totalKey] = nextTotal;
-    subjectState[doneKey] = Math.min(subjectState[doneKey], nextTotal);
-    saveState();
-    renderAll();
-  };
-
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      finish(true);
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      finish(false);
-    }
-  });
-  input.addEventListener("blur", () => finish(true));
-  valueElement.replaceWith(input);
-  window.requestAnimationFrame(() => {
-    input.focus();
-    input.select();
-  });
-}
-
 function scrollToCurrentWeek(behavior = "smooth") {
   const currentWeekElement = document.querySelector("#semana-actual");
   if (!currentWeekElement) return;
@@ -1652,21 +1659,27 @@ deadlinesSubjectFilter?.addEventListener("change", () => {
       return;
     }
 
-    const counter = event.target.closest("button[data-subject-id][data-kind][data-change]");
-    if (counter) {
-      updateCounter(
-        counter.dataset.subjectId,
-        counter.dataset.kind,
-        Number.parseInt(counter.dataset.change, 10),
-      );
-    }
+    const counter = event.target.closest("button[data-open-deadlines]");
+    if (counter) openDeadlinesFor(counter.dataset.openDeadlines);
   });
 });
 
-progressList.addEventListener("dblclick", (event) => {
-  const value = event.target.closest(".counter-value");
-  if (value) beginCounterTotalEdit(value);
+deadlinesList.addEventListener("click", (event) => {
+  const control = event.target.closest("button[data-deliverable]");
+  if (!control) return;
+  toggleDeliverable(
+    control.dataset.subjectId,
+    control.dataset.deliverable,
+    Number.parseInt(control.dataset.index, 10),
+  );
 });
+
+function openDeadlinesFor(subjectId) {
+  selectedDeadlinesSubject = subjectId;
+  if (deadlinesSubjectFilter) deadlinesSubjectFilter.value = subjectId;
+  renderDeadlines();
+  document.querySelector('.nav-button[data-view="deadlines"]')?.click();
+}
 
 curriculumSearch.addEventListener("input", () => renderCurriculum(curriculumSearch.value));
 document.querySelector("#resetButton").addEventListener("click", () => resetDialog.showModal());
@@ -1802,8 +1815,9 @@ function registerProgressTools() {
           { length: subjectState.topics.length },
           (_, index) => index < input.topicsDone,
         );
-        subjectState.testsDone = input.testsDone;
-        subjectState.activitiesDone = input.activitiesDone;
+        subjectState.tests = subjectState.tests.map((_, index) => index < input.testsDone);
+        subjectState.activities = subjectState.activities.map((_, index) => index < input.activitiesDone);
+        syncChecklistCounts(subjectState);
         saveState();
         renderAll();
         return { subjectId: input.subjectId, percent: getPercent(subjectState) };
