@@ -1,5 +1,4 @@
 const STORAGE_KEY = "daw-progress-v1";
-const API_PROGRESS_URL = "api/progress";
 const COMPENDIO_HOST = "compendio-daw.vercel.app";
 const COMPENDIO_READ_KEY = "daw_compendio_read_topics";
 const COMPENDIO_SYNC_KEY = "daw-compendio-sync-v1";
@@ -28,7 +27,6 @@ const deadlinesSubjectFilter = document.querySelector("#deadlinesSubjectFilter")
 const savedState = document.querySelector("#savedState");
 const shareState = document.querySelector("#shareState");
 const copyProgressButton = document.querySelector("#copyProgressButton");
-const persistenceHint = document.querySelector("#persistenceHint");
 const resetDialog = document.querySelector("#resetDialog");
 const completeWeeksDialog = document.querySelector("#completeWeeksDialog");
 const importDialog = document.querySelector("#importDialog");
@@ -37,8 +35,6 @@ let pendingWeeksCompletion = null;
 
 let saveTimer = null;
 let copyFeedbackTimer = null;
-let persistenceMode = "local";
-let serverSaveQueue = Promise.resolve();
 // El progreso del enlace solo se aplica sin preguntar si este navegador no tiene otro distinto.
 // Después se limpia la barra de direcciones para que Favoritos e historial no guarden copias viejas.
 const stateFromUrl = loadStateFromUrl();
@@ -317,10 +313,6 @@ function clampNumber(value, min, max, fallback) {
   return Math.min(max, Math.max(min, parsed));
 }
 
-function setPersistenceHint(message) {
-  if (persistenceHint) persistenceHint.textContent = message;
-}
-
 function markSaving() {
   savedState.textContent = "Guardando…";
   savedState.classList.add("is-saving");
@@ -343,91 +335,24 @@ function saveLocalSnapshot(snapshot) {
   }
 }
 
-async function writeServerSnapshot(snapshot) {
-  const response = await fetch(API_PROGRESS_URL, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: snapshot,
-    cache: "no-store",
-  });
-  if (!response.ok) throw new Error(`No se pudo guardar el progreso (${response.status})`);
-}
-
-function queueServerSnapshot(snapshot) {
-  serverSaveQueue = serverSaveQueue
-    .then(async () => {
-      if (persistenceMode === "server") await writeServerSnapshot(snapshot);
-    })
-    .then(() => {
-      if (persistenceMode === "server") markSaved("Todo guardado en el archivo del proyecto");
-    })
-    .catch(() => {
-      persistenceMode = "local";
-      saveLocalSnapshot(snapshot);
-      setPersistenceHint("Guardado automático en este navegador");
-      savedState.textContent = "Todo guardado en este navegador";
-      savedState.classList.remove("is-saving");
-    });
-}
-
 function saveState() {
   const snapshot = JSON.stringify(state);
   markSaving();
-
-  if (persistenceMode === "server") {
-    queueServerSnapshot(snapshot);
-    return;
-  }
-
   saveLocalSnapshot(snapshot);
   writeCompendioReadTopics();
   markSaved("Todo guardado en este navegador");
 }
 
-async function initialisePersistence() {
-  try {
-    const response = await fetch(API_PROGRESS_URL, { cache: "no-store" });
-    if (!response.ok) throw new Error(`API no disponible (${response.status})`);
-
-    const payload = await response.json();
-    const remoteState = Object.prototype.hasOwnProperty.call(payload, "state") ? payload.state : payload;
-    persistenceMode = "server";
-    setPersistenceHint("Guardado automático en el archivo del proyecto");
-
-    if (importedStateFromUrl) {
-      importedStateFromUrl = false;
-      saveLocalSnapshot(JSON.stringify(state));
-      queueServerSnapshot(JSON.stringify(state));
-      savedState.textContent = "Progreso recuperado desde el enlace";
-      showToast("Progreso recuperado desde el enlace.");
-      shareState.textContent = "Puedes seguir avanzando y crear una copia nueva cuando quieras.";
-      return;
-    }
-
-    if (remoteState && typeof remoteState === "object") {
-      state = hydrateState(remoteState);
-      renderAll();
-      offerUrlStateImport();
-      savedState.textContent = "Todo guardado en el archivo del proyecto";
-      savedState.classList.remove("is-saving");
-      return;
-    }
-
-    // Primera ejecución del servidor: conserva lo que hubiera en localStorage.
-    queueServerSnapshot(JSON.stringify(state));
-    offerUrlStateImport();
-  } catch {
-    persistenceMode = "local";
-    setPersistenceHint("Guardado automático en este navegador");
-    if (importedStateFromUrl) {
-      importedStateFromUrl = false;
-      saveLocalSnapshot(JSON.stringify(state));
-      savedState.textContent = "Progreso recuperado desde el enlace";
-      showToast("Progreso recuperado desde el enlace.");
-      shareState.textContent = "Puedes seguir avanzando y crear una copia nueva cuando quieras.";
-    }
-    offerUrlStateImport();
+function announceUrlStateImport() {
+  if (importedStateFromUrl) {
+    importedStateFromUrl = false;
+    saveLocalSnapshot(JSON.stringify(state));
+    writeCompendioReadTopics();
+    savedState.textContent = "Progreso recuperado desde el enlace";
+    showToast("Progreso recuperado desde el enlace.");
+    shareState.textContent = "Puedes seguir avanzando y crear una copia nueva cuando quieras.";
   }
+  offerUrlStateImport();
 }
 
 function getCompleted(subjectState) {
@@ -1839,7 +1764,7 @@ populateSubjectFilter(weeksSubjectFilter);
 populateSubjectFilter(deadlinesSubjectFilter);
 renderAll();
 registerProgressTools();
-void initialisePersistence();
+announceUrlStateImport();
 window.requestAnimationFrame(() => scrollToCurrentWeek("auto"));
 window.setInterval(refreshCurrentWeek, 60 * 1000);
 window.addEventListener("focus", refreshCurrentWeek);
