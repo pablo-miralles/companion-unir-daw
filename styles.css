@@ -824,6 +824,15 @@ h1 {
   border-color: var(--subject, var(--blue));
 }
 
+.topic-check.is-progress {
+  border-color: var(--subject, var(--blue));
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--subject, var(--blue)) 30%, white) 50%,
+    var(--surface) 50%
+  );
+}
+
 .topic-check.is-complete {
   border-color: var(--subject, var(--blue));
   background: var(--subject, var(--blue));

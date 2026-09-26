@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-36" />
+    <link rel="stylesheet" href="styles.css?v=20260926-37" />
   </head>
   <body>
     <header class="site-header">
@@ -314,8 +314,12 @@
           <section class="guide-section">
             <h2><span>4</span>Temario: todos los temas</h2>
             <p>
-              Todos los temas de cada asignatura, con un buscador arriba. Cada tema tiene su casilla de completado y
-              enlaces al tema en Campus y a su resumen.
+              Todos los temas de cada asignatura en forma de lista, con un buscador arriba y enlaces al tema en Campus
+              y a su resumen.
+            </p>
+            <p>
+              Está <strong>sincronizado con Progreso</strong>: es la misma información vista de otra forma. Si completas
+              un tema aquí, aparece completado en Progreso, y al revés. La casilla usa los mismos estados:
             </p>
             <div class="guide-example" inert aria-hidden="true">
               <div class="curriculum-subject guide-curriculum" data-subject="bases-datos">
@@ -325,12 +329,22 @@
                   <div class="topic-links"><span class="campus-link">Tema en Campus ↗</span><span>Resumen ↗</span></div>
                 </div>
                 <div class="curriculum-topic">
+                  <span class="topic-check is-progress">✓</span>
+                  <div class="curriculum-topic-copy"><strong>Tema 2 · Diseño conceptual de base de datos</strong><span>Semanas 5–7 · <span class="topic-progress-badge">En progreso</span></span></div>
+                  <div class="topic-links"><span class="campus-link">Tema en Campus ↗</span><span>Resumen ↗</span></div>
+                </div>
+                <div class="curriculum-topic">
                   <span class="topic-check">✓</span>
-                  <div class="curriculum-topic-copy"><strong>Tema 2 · Diseño conceptual de base de datos</strong><span>Semanas 5–7</span></div>
+                  <div class="curriculum-topic-copy"><strong>Tema 3 · Modelo lógico relacional</strong><span>Semanas 8–10</span></div>
                   <div class="topic-links"><span class="campus-link">Tema en Campus ↗</span><span>Resumen ↗</span></div>
                 </div>
               </div>
             </div>
+            <ul class="guide-points">
+              <li><strong>Marcada:</strong> tema completado. Pulsa la casilla para completarlo o quitarlo.</li>
+              <li><strong>Medio rellena:</strong> tema en progreso, has estudiado alguna de sus semanas.</li>
+              <li><strong>Vacía:</strong> tema pendiente.</li>
+            </ul>
           </section>
 
           <section class="guide-section guide-section-save">
@@ -425,6 +439,6 @@
     <script src="campus-links.js"></script>
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
-    <script src="app.js?v=20260926-37"></script>
+    <script src="app.js?v=20260926-38"></script>
   </body>
 </html>

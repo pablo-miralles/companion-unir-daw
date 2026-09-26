@@ -704,13 +704,14 @@ function createWeekSubject({ subject, week, heading, subtopics, material, schedu
 function createTopicToggle(subject, topic, complete) {
   const toggle = document.createElement("button");
   toggle.type = "button";
-  toggle.className = `topic-check${complete ? " is-complete" : ""}`;
+  const inProgress = !complete && getTopicStatus(subject.id, topic.number) === "progress";
+  toggle.className = `topic-check${complete ? " is-complete" : ""}${inProgress ? " is-progress" : ""}`;
   toggle.dataset.subjectId = subject.id;
   toggle.dataset.topicNumber = String(topic.number);
   toggle.setAttribute("aria-pressed", String(complete));
   toggle.setAttribute(
     "aria-label",
-    `${complete ? "Marcar pendiente" : "Marcar estudiado"}: ${subject.name}, ${subject.topicLabel.toLowerCase()} ${topic.number}`,
+    `${complete ? "Marcar pendiente" : "Marcar completado"}: ${subject.name}, ${subject.topicLabel.toLowerCase()} ${topic.number}${inProgress ? " (en progreso)" : ""}`,
   );
   toggle.textContent = "✓";
   return toggle;
