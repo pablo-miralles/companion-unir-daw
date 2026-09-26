@@ -718,6 +718,67 @@ h1 {
   color: var(--subject, var(--blue));
 }
 
+.week-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.week-check:hover {
+  border-color: var(--subject, var(--blue));
+}
+
+.week-check-box {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+  color: transparent;
+  font-size: 10px;
+  font-weight: 800;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.week-check.is-complete {
+  border-color: var(--subject, var(--blue));
+  background: var(--subject-soft, var(--blue-soft));
+  color: var(--subject, var(--blue));
+}
+
+.week-check.is-complete .week-check-box {
+  border-color: var(--subject, var(--blue));
+  background: var(--subject, var(--blue));
+  color: #fff;
+}
+
+.week-subject.is-studied .study-copy ul {
+  color: var(--muted);
+}
+
+.topic-status-note {
+  margin: 10px 0 0;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.topic-status-note::before {
+  margin-right: 6px;
+  content: "✓";
+  font-weight: 800;
+}
+
 .topic-check {
   display: grid;
   width: 26px;
@@ -1005,6 +1066,56 @@ h1 {
   border-color: var(--subject, var(--blue));
   background: var(--subject, var(--blue));
   color: #fff;
+}
+
+.topic-dot.is-progress {
+  border-color: var(--subject, var(--blue));
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--subject, var(--blue)) 30%, white) 50%,
+    var(--surface) 50%
+  );
+  color: var(--subject, var(--blue));
+  font-weight: 750;
+}
+
+.topic-progress-badge {
+  color: var(--subject, var(--blue));
+  font-weight: 650;
+}
+
+.progress-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0 0 12px;
+  padding: 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.progress-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.progress-legend i {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--surface);
+}
+
+.progress-legend .is-progress {
+  border-color: var(--blue);
+  background: linear-gradient(to top, color-mix(in srgb, var(--blue) 30%, white) 50%, var(--surface) 50%);
+}
+
+.progress-legend .is-complete {
+  border-color: var(--blue);
+  background: var(--blue);
 }
 
 .work-counts {
@@ -1612,6 +1723,9 @@ h1 {
   .study-actions {
     grid-row: 1;
     grid-column: 2;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
   }
 
   .progress-save-guide {

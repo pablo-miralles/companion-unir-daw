@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20260926-24" />
+    <link rel="stylesheet" href="styles.css?v=20260926-26" />
   </head>
   <body>
     <header class="site-header">
@@ -72,7 +72,7 @@
             <p id="persistenceHint" class="save-guide-label">Guardado automático en este navegador</p>
             <strong>No necesitas pulsar «guardar»</strong>
             <p>
-              Cada vez que marcas un tema, test o actividad, el cambio se guarda en este navegador. No necesitas crear una cuenta.
+              Cada vez que marcas una semana, un tema, un test o una actividad, el cambio se guarda en este navegador. No necesitas crear una cuenta.
             </p>
             <p id="savedState" class="saved-state" aria-live="polite">Todo guardado</p>
           </div>
@@ -125,6 +125,11 @@
         </details>
 
         <div id="progressSummary" class="progress-summary"></div>
+        <p class="progress-legend" aria-hidden="true">
+          <span><i></i>Pendiente</span>
+          <span><i class="is-progress"></i>En progreso: has marcado alguna semana del tema</span>
+          <span><i class="is-complete"></i>Completado: pulsa el número cuando lo termines</span>
+        </p>
         <div id="progressList" class="progress-list"></div>
       </section>
 
@@ -173,7 +178,7 @@
     <dialog id="resetDialog" class="dialog">
       <form method="dialog" class="dialog-panel">
         <h2>¿Reiniciar el progreso?</h2>
-        <p>Se borrarán los temas, tests y actividades marcados en este navegador.</p>
+        <p>Se borrarán las semanas, temas, tests y actividades marcados en este navegador.</p>
         <div class="dialog-actions">
           <button value="cancel" class="button secondary">Cancelar</button>
           <button id="confirmResetButton" value="default" class="button danger">Reiniciar</button>
@@ -185,6 +190,6 @@
     <script src="campus-links.js"></script>
     <script src="schedule.js?v=20260920-2"></script>
     <script src="deadlines.js?v=20260926-4"></script>
-    <script src="app.js?v=20260926-21"></script>
+    <script src="app.js?v=20260926-22"></script>
   </body>
 </html>

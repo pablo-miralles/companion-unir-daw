@@ -4,10 +4,10 @@ El companion funciona de dos formas:
 
 ## Cómo se guarda tu progreso (sin tecnicismos)
 
-- **Se guarda solo.** Cada vez que marcas un tema, test o actividad, el cambio queda guardado en el navegador que estás usando (Chrome, Safari, Edge…). No hay botón de guardar ni hace falta cuenta.
+- **Se guarda solo.** Cada vez que marcas una semana, un tema, un test o una actividad, el cambio queda guardado en el navegador que estás usando (Chrome, Safari, Edge…). No hay botón de guardar ni hace falta cuenta.
 - **Solo vive en ese navegador.** Si abres la página en otro ordenador, en el móvil, en otro navegador o en una ventana de incógnito, empezará vacía. Si borras el historial o los datos de navegación, también se pierde.
 - **Haz una copia con un enlace.** En la pestaña **Progreso**, pulsa **Copiar enlace con mi progreso** y guárdalo (Favoritos, una nota, un correo a ti mismo…). Al abrir ese enlace en cualquier sitio recuperas el progreso tal como estaba al copiarlo. Cuando avances, copia uno nuevo.
-- **Es privado.** El progreso va dentro del propio enlace, después de `#progreso=`, y esa parte nunca se envía a ningún servidor. Solo contiene qué temas has marcado y los contadores de tests y actividades; ni nombres, ni cuentas, ni documentos.
+- **Es privado.** El progreso va dentro del propio enlace, después de `#progreso=`, y esa parte nunca se envía a ningún servidor. Solo contiene qué semanas y temas has marcado y los contadores de tests y actividades; ni nombres, ni cuentas, ni documentos.
 
 ## Abrir `index.html`
 

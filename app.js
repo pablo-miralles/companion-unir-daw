@@ -55,6 +55,7 @@ function createInitialState() {
       subject.id,
       {
         topics: Array(subject.topics.length).fill(false),
+        weeks: [],
         testsDone: 0,
         testsTotal: subject.testsTotal,
         activitiesDone: 0,
@@ -85,8 +86,16 @@ function hydrateState(stored) {
         ? subject.activitiesTotal
         : storedActivitiesTotal;
 
+    const studyWeeks = WEEKLY_STUDY[subject.id] || {};
+    const weeks = Array.isArray(current.weeks)
+      ? [...new Set(current.weeks.map(Number))]
+          .filter((week) => Number.isInteger(week) && studyWeeks[week])
+          .sort((a, b) => a - b)
+      : [];
+
     initial[subject.id] = {
       topics,
+      weeks,
       testsTotal,
       testsDone: clampNumber(current.testsDone, 0, testsTotal, 0),
       activitiesTotal,
@@ -132,6 +141,8 @@ function createUrlStatePayload() {
           (mask, complete, index) => (complete ? mask | (1 << index) : mask),
           0,
         );
+        // Semanas 1–32 como máscara numérica (2 ** 31 no cabe en operadores de bits).
+        const weekMask = subjectState.weeks.reduce((mask, week) => mask + 2 ** (week - 1), 0);
         return [
           subject.id,
           [
@@ -140,6 +151,7 @@ function createUrlStatePayload() {
             subjectState.testsTotal,
             subjectState.activitiesDone,
             subjectState.activitiesTotal,
+            weekMask,
           ],
         ];
       }),
@@ -155,14 +167,20 @@ function hydrateUrlState(payload) {
   const decoded = {};
   SUBJECTS.forEach((subject) => {
     const values = payload.d[subject.id];
-    if (!Array.isArray(values) || values.length !== 5) return;
-    const [topicMask, testsDone, testsTotal, activitiesDone, activitiesTotal] = values;
+    if (!Array.isArray(values) || (values.length !== 5 && values.length !== 6)) return;
+    const [topicMask, testsDone, testsTotal, activitiesDone, activitiesTotal, weekMask = 0] = values;
     if (!Number.isInteger(topicMask) || topicMask < 0) return;
+    const weeks = Number.isSafeInteger(weekMask) && weekMask > 0
+      ? Array.from({ length: 32 }, (_, index) => index + 1).filter(
+          (week) => Math.floor(weekMask / 2 ** (week - 1)) % 2 === 1,
+        )
+      : [];
     decoded[subject.id] = {
       topics: Array.from(
         { length: subject.topics.length },
         (_, index) => Boolean(topicMask & (1 << index)),
       ),
+      weeks,
       testsDone,
       testsTotal,
       activitiesDone,
@@ -419,6 +437,32 @@ function getRepeatedBlockInfo(subjectId, week, heading, subtopics) {
   };
 }
 
+function getStudyTopicNumber(subjectId, week) {
+  const item = WEEKLY_STUDY[subjectId]?.[week];
+  return item ? item.materialTopic || item.topic : null;
+}
+
+function isWeekStudied(subjectId, week) {
+  return Boolean(state[subjectId]?.weeks.includes(week));
+}
+
+function getTopicStatus(subjectId, topicNumber) {
+  const subjectState = state[subjectId];
+  if (!subjectState) return "pending";
+  if (subjectState.topics[topicNumber - 1]) return "done";
+  return subjectState.weeks.some((week) => getStudyTopicNumber(subjectId, week) === topicNumber)
+    ? "progress"
+    : "pending";
+}
+
+function countTopicsInProgress() {
+  return SUBJECTS.reduce(
+    (sum, subject) =>
+      sum + subject.topics.filter((topic) => getTopicStatus(subject.id, topic.number) === "progress").length,
+    0,
+  );
+}
+
 function renderAll() {
   renderTimeline();
   renderProgress();
@@ -523,8 +567,10 @@ function renderTimeline() {
 }
 
 function createWeekSubject({ subject, week, heading, subtopics, material, scheduleTopicNumber, dateRange }) {
+  const studied = isWeekStudied(subject.id, week);
+  const topicStatus = getTopicStatus(subject.id, material.number);
   const row = document.createElement("article");
-  row.className = "week-subject";
+  row.className = `week-subject${studied ? " is-studied" : ""}`;
   row.dataset.subject = subject.id;
 
   const label = document.createElement("div");
@@ -576,6 +622,12 @@ function createWeekSubject({ subject, week, heading, subtopics, material, schedu
     note.textContent = "El cronograma no desglosa subtemas esta semana.";
     copy.append(note);
   }
+  if (topicStatus === "done") {
+    const status = document.createElement("p");
+    status.className = "topic-status-note";
+    status.textContent = `${subject.topicLabel} ${material.number} marcado como completado`;
+    copy.append(status);
+  }
 
   const actions = document.createElement("div");
   actions.className = "study-actions";
@@ -591,6 +643,24 @@ function createWeekSubject({ subject, week, heading, subtopics, material, schedu
     link.setAttribute("aria-label", `Abrir este tema de ${subject.name} en Campus`);
     actions.append(link);
   }
+  const weekToggle = document.createElement("button");
+  weekToggle.type = "button";
+  weekToggle.className = `week-check${studied ? " is-complete" : ""}`;
+  weekToggle.dataset.subjectId = subject.id;
+  weekToggle.dataset.week = String(week);
+  weekToggle.setAttribute("aria-pressed", String(studied));
+  weekToggle.title = studied
+    ? "Desmarcar esta semana"
+    : "Marca que has estudiado esta semana. El tema no se da por completado hasta que lo marques en Progreso o Temario.";
+  weekToggle.setAttribute("aria-label", `Semana ${week} de ${subject.name} estudiada`);
+  const box = document.createElement("span");
+  box.className = "week-check-box";
+  box.setAttribute("aria-hidden", "true");
+  box.textContent = "✓";
+  const text = document.createElement("span");
+  text.textContent = studied ? "Estudiada" : "Marcar semana";
+  weekToggle.append(box, text);
+  actions.append(weekToggle);
   row.append(label, copy, actions);
   return row;
 }
@@ -640,7 +710,10 @@ function renderOverall() {
 function renderProgress() {
   const totals = getTotals();
   progressSummary.replaceChildren(
-    createSummaryMetric(`${totals.topicsDone}/${totals.topicsTotal}`, "temas"),
+    createSummaryMetric(
+      `${totals.topicsDone}/${totals.topicsTotal}`,
+      countTopicsInProgress() > 0 ? `temas · ${countTopicsInProgress()} en progreso` : "temas",
+    ),
     createSummaryMetric(`${totals.testsDone}/${totals.testsTotal}`, "tests"),
     createSummaryMetric(`${totals.activitiesDone}/${totals.activitiesTotal}`, "actividades"),
   );
@@ -673,14 +746,15 @@ function renderProgress() {
     dots.setAttribute("aria-label", `${subject.topicLabel === "Unidad" ? "Unidades" : "Temas"} de ${subject.name}`);
     subject.topics.forEach((topic, index) => {
       const complete = subjectState.topics[index];
+      const inProgress = getTopicStatus(subject.id, topic.number) === "progress";
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `topic-dot${complete ? " is-complete" : ""}`;
+      button.className = `topic-dot${complete ? " is-complete" : ""}${inProgress ? " is-progress" : ""}`;
       button.dataset.subjectId = subject.id;
       button.dataset.topicNumber = String(topic.number);
       button.setAttribute("aria-pressed", String(complete));
-      button.setAttribute("aria-label", `${subject.topicLabel} ${topic.number}: ${complete ? "estudiado" : "pendiente"}`);
-      button.title = `${subject.topicLabel} ${topic.number} · ${topic.title}`;
+      button.setAttribute("aria-label", `${subject.topicLabel} ${topic.number}: ${complete ? "completado" : inProgress ? "en progreso" : "pendiente"}`);
+      button.title = `${subject.topicLabel} ${topic.number} · ${topic.title}${inProgress ? " (en progreso)" : ""}`;
       button.textContent = String(topic.number);
       dots.append(button);
     });
@@ -1083,6 +1157,12 @@ function createCurriculumTopic(subject, topic) {
       ? `Semana ${topic.weeks[0]}`
       : `Semanas ${topic.weeks[0]}–${topic.weeks[1]}`;
   copy.append(title, weeks);
+  if (getTopicStatus(subject.id, topic.number) === "progress") {
+    const badge = document.createElement("span");
+    badge.className = "topic-progress-badge";
+    badge.textContent = "En progreso";
+    weeks.append(" · ", badge);
+  }
   row.append(copy);
 
   const links = document.createElement("div");
@@ -1132,6 +1212,16 @@ function toggleTopic(subjectId, topicNumber) {
   const index = topicNumber - 1;
   if (!subjectState || index < 0 || index >= subjectState.topics.length) return;
   subjectState.topics[index] = !subjectState.topics[index];
+  saveState();
+  renderAll();
+}
+
+function toggleWeek(subjectId, week) {
+  const subjectState = state[subjectId];
+  if (!subjectState || !WEEKLY_STUDY[subjectId]?.[week]) return;
+  subjectState.weeks = isWeekStudied(subjectId, week)
+    ? subjectState.weeks.filter((item) => item !== week)
+    : [...subjectState.weeks, week].sort((a, b) => a - b);
   saveState();
   renderAll();
 }
@@ -1317,6 +1407,12 @@ deadlinesSubjectFilter?.addEventListener("change", () => {
     const toggle = event.target.closest("button[data-subject-id][data-topic-number]");
     if (toggle) {
       toggleTopic(toggle.dataset.subjectId, Number.parseInt(toggle.dataset.topicNumber, 10));
+      return;
+    }
+
+    const weekToggle = event.target.closest("button[data-subject-id][data-week]");
+    if (weekToggle) {
+      toggleWeek(weekToggle.dataset.subjectId, Number.parseInt(weekToggle.dataset.week, 10));
       return;
     }
 
