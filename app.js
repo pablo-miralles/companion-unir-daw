@@ -18,8 +18,6 @@ const SUMMARY_SLUGS = {
 const weeksTimeline = document.querySelector("#weeksTimeline");
 const progressList = document.querySelector("#progressList");
 const progressSummary = document.querySelector("#progressSummary");
-const curriculumList = document.querySelector("#curriculumList");
-const curriculumSearch = document.querySelector("#curriculumSearch");
 const deadlinesList = document.querySelector("#deadlinesList");
 const nextDeadline = document.querySelector("#nextDeadline");
 const weeksSubjectFilter = document.querySelector("#weeksSubjectFilter");
@@ -49,6 +47,9 @@ let state = importedStateFromUrl ? stateFromUrl : localStateAtStart;
 let currentRenderedWeek = null;
 let selectedWeeksSubject = "all";
 let pastWeeksOpen = false;
+// Progreso incluye el temario: asignaturas desplegadas y búsqueda de temas.
+const expandedSubjects = new Set();
+let progressQuery = "";
 let selectedDeadlinesSubject = "all";
 
 function createInitialState() {
@@ -489,7 +490,6 @@ function renderAll() {
   renderProgress();
   renderNextDeadline();
   renderDeadlines();
-  renderCurriculum(curriculumSearch.value);
   renderOverall();
 }
 
@@ -779,9 +779,23 @@ function renderProgress() {
     createSummaryMetric(`${totals.activitiesDone}/${totals.activitiesTotal}`, "actividades"),
   );
   progressList.replaceChildren();
+  const normalizedQuery = normalizeText(progressQuery.trim());
 
   SUBJECTS.forEach((subject) => {
     const subjectState = state[subject.id];
+    const subjectMatches = normalizeText(subject.name).includes(normalizedQuery);
+    const topics = subject.topics.filter(
+      (topic) =>
+        !normalizedQuery ||
+        subjectMatches ||
+        normalizeText(`${topic.number} ${topic.title}`).includes(normalizedQuery),
+    );
+    if (normalizedQuery && topics.length === 0) return;
+    const expanded = Boolean(normalizedQuery) || expandedSubjects.has(subject.id);
+
+    const wrapper = document.createElement("section");
+    wrapper.className = `progress-subject${expanded ? " is-expanded" : ""}`;
+    wrapper.dataset.subject = subject.id;
     const row = document.createElement("article");
     row.className = "progress-row";
     row.dataset.subject = subject.id;
@@ -799,7 +813,15 @@ function renderProgress() {
     const bar = document.createElement("span");
     bar.style.width = `${getPercent(subjectState)}%`;
     progress.append(bar);
-    copy.append(strong, progress);
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "topics-toggle";
+    toggle.dataset.toggleTopics = subject.id;
+    toggle.setAttribute("aria-expanded", String(expanded));
+    toggle.textContent = expanded
+      ? `Ocultar ${subject.topicLabel === "Unidad" ? "unidades" : "temas"}`
+      : `Ver ${subject.topicLabel === "Unidad" ? "unidades" : "temas"} y enlaces`;
+    copy.append(strong, progress, toggle);
     name.append(code, copy);
 
     const dots = document.createElement("div");
@@ -834,8 +856,17 @@ function renderProgress() {
     }
 
     row.append(name, dots, work);
-    progressList.append(row);
+    wrapper.append(row);
+    if (expanded) wrapper.append(createSubjectTopicsBody(subject, topics));
+    progressList.append(wrapper);
   });
+
+  if (progressList.childElementCount === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No hay temas que coincidan con esa búsqueda.";
+    progressList.append(empty);
+  }
 }
 
 function createSummaryMetric(value, label) {
@@ -1191,80 +1222,41 @@ function createCounter(subjectId, kind, label, subjectState) {
   return counter;
 }
 
-function renderCurriculum(query = "") {
-  const normalizedQuery = normalizeText(query.trim());
-  const openSubjectIds = new Set(
-    Array.from(curriculumList.querySelectorAll("details[open]"), (details) => details.dataset.subjectId),
-  );
-  curriculumList.replaceChildren();
-
-  SUBJECTS.forEach((subject) => {
-    const subjectMatches = normalizeText(subject.name).includes(normalizedQuery);
-    const topics = subject.topics.filter(
-      (topic) =>
-        !normalizedQuery ||
-        subjectMatches ||
-        normalizeText(`${topic.number} ${topic.title}`).includes(normalizedQuery),
-    );
-    if (topics.length === 0) return;
-
-    const details = document.createElement("details");
-    details.className = "curriculum-subject";
-    details.dataset.subjectId = subject.id;
-    details.dataset.subject = subject.id;
-    details.open = Boolean(normalizedQuery) || openSubjectIds.has(subject.id);
-    const summary = document.createElement("summary");
-    const code = document.createElement("span");
-    code.className = "subject-code";
-    code.textContent = subject.short;
-    const title = document.createElement("h2");
-    title.textContent = subject.name;
-    summary.append(code, title);
-
-    const body = document.createElement("div");
-    body.className = "curriculum-body";
-    const scheduleUrl = getCampusScheduleUrl(subject.id);
-    if (scheduleUrl) {
-      const link = document.createElement("a");
-      link.className = "schedule-link";
-      link.href = scheduleUrl;
-      link.target = "_blank";
-      link.rel = "noreferrer";
-      link.textContent = "Cronograma en Campus ↗";
-      body.append(link);
-    }
-
-    const temarioUrl = getCampusTemarioUrl(subject.id);
-    if (temarioUrl) {
-      const link = document.createElement("a");
-      link.className = "schedule-link";
-      link.href = temarioUrl;
-      link.target = "_blank";
-      link.rel = "noreferrer";
-      link.textContent = "Temario oficial en Campus ↗";
-      link.title = "Abrir el temario oficial de esta asignatura en Campus";
-      body.append(link);
-    }
-
-    if (!SUMMARY_SLUGS[subject.id]) {
-      const note = document.createElement("p");
-      note.className = "summary-unavailable";
-      note.textContent = "No hay resúmenes externos disponibles para esta asignatura.";
-      body.append(note);
-    }
-
-    topics.forEach((topic) => body.append(createCurriculumTopic(subject, topic)));
-
-    details.append(summary, body);
-    curriculumList.append(details);
-  });
-
-  if (curriculumList.childElementCount === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "No hay resultados para esa búsqueda.";
-    curriculumList.append(empty);
+function createSubjectTopicsBody(subject, topics) {
+  const body = document.createElement("div");
+  body.className = "curriculum-body";
+  const scheduleUrl = getCampusScheduleUrl(subject.id);
+  if (scheduleUrl) {
+    const link = document.createElement("a");
+    link.className = "schedule-link";
+    link.href = scheduleUrl;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.textContent = "Cronograma en Campus ↗";
+    body.append(link);
   }
+
+  const temarioUrl = getCampusTemarioUrl(subject.id);
+  if (temarioUrl) {
+    const link = document.createElement("a");
+    link.className = "schedule-link";
+    link.href = temarioUrl;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.textContent = "Temario oficial en Campus ↗";
+    link.title = "Abrir el temario oficial de esta asignatura en Campus";
+    body.append(link);
+  }
+
+  if (!SUMMARY_SLUGS[subject.id]) {
+    const note = document.createElement("p");
+    note.className = "summary-unavailable";
+    note.textContent = "No hay resúmenes externos disponibles para esta asignatura.";
+    body.append(note);
+  }
+
+  topics.forEach((topic) => body.append(createCurriculumTopic(subject, topic)));
+  return body;
 }
 
 function createCurriculumTopic(subject, topic) {
@@ -1573,12 +1565,12 @@ const VIEW_ROUTES = {
   timetable: "horario",
   deadlines: "entregas",
   progress: "progreso",
-  curriculum: "temario",
   guide: "como-usar",
 };
 
 function getViewFromUrl() {
   const match = window.location.hash.match(/^#\/([a-z-]+)/);
+  if (match?.[1] === "temario") return "progress"; // Temario ahora vive dentro de Progreso.
   return Object.keys(VIEW_ROUTES).find((view) => VIEW_ROUTES[view] === match?.[1]) || null;
 }
 
@@ -1592,6 +1584,7 @@ function showView(view, { updateUrl = true } = {}) {
   document.querySelectorAll("[data-view-panel]").forEach((panel) => {
     panel.hidden = panel.dataset.viewPanel !== view;
   });
+  document.body.dataset.view = view;
   document.querySelector(`.nav-button[data-view="${view}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
   if (updateUrl && getViewFromUrl() !== view) {
     window.history.pushState(null, "", `#/${VIEW_ROUTES[view]}`);
@@ -1605,7 +1598,7 @@ document.querySelectorAll(".nav-button").forEach((button) => {
 
 document.querySelectorAll("[data-go-view]").forEach((button) => {
   button.addEventListener("click", () => {
-    document.querySelector(`.nav-button[data-view="${button.dataset.goView}"]`)?.click();
+    showView(button.dataset.goView);
   });
 });
 
@@ -1938,7 +1931,7 @@ function celebrateIfMarking(button) {
   if (button?.getAttribute("aria-pressed") === "false") launchConfetti(button);
 }
 
-[weeksTimeline, progressList, curriculumList].forEach((container) => {
+[weeksTimeline, progressList].forEach((container) => {
   container.addEventListener("click", (event) => {
     const toggle = event.target.closest("button[data-subject-id][data-topic-number]");
     if (toggle) {
@@ -1951,6 +1944,15 @@ function celebrateIfMarking(button) {
     if (weekToggle) {
       celebrateIfMarking(weekToggle);
       toggleWeek(weekToggle.dataset.subjectId, Number.parseInt(weekToggle.dataset.week, 10));
+      return;
+    }
+
+    const topicsToggle = event.target.closest("button[data-toggle-topics]");
+    if (topicsToggle) {
+      const subjectId = topicsToggle.dataset.toggleTopics;
+      if (expandedSubjects.has(subjectId)) expandedSubjects.delete(subjectId);
+      else expandedSubjects.add(subjectId);
+      renderProgress();
       return;
     }
 
@@ -1977,7 +1979,10 @@ function openDeadlinesFor(subjectId) {
   document.querySelector('.nav-button[data-view="deadlines"]')?.click();
 }
 
-curriculumSearch.addEventListener("input", () => renderCurriculum(curriculumSearch.value));
+document.querySelector("#progressSearch")?.addEventListener("input", (event) => {
+  progressQuery = event.target.value;
+  renderProgress();
+});
 document.querySelector("#resetButton").addEventListener("click", () => resetDialog.showModal());
 document.querySelector("#confirmResetButton").addEventListener("click", (event) => {
   event.preventDefault();
@@ -2143,6 +2148,13 @@ renderTimetable();
 registerProgressTools();
 announceUrlStateImport();
 const initialView = getViewFromUrl() || "weeks";
+document.body.dataset.view = initialView;
+// El botón de ayuda flota encima de la barra de próxima entrega cuando esta se ve.
+if (nextDeadline && "ResizeObserver" in window) {
+  new ResizeObserver(() => {
+    document.body.style.setProperty("--deadline-bar-height", `${nextDeadline.offsetHeight}px`);
+  }).observe(nextDeadline);
+}
 if (initialView !== "weeks") showView(initialView, { updateUrl: false });
 window.setInterval(refreshCurrentWeek, 60 * 1000);
 window.setInterval(renderTimetable, 60 * 1000);
