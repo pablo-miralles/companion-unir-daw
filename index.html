@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Companion local de estudio y progreso para primero de DAW en UNIR." />
+    <meta name="theme-color" content="#0098cd" />
+    <title>Companion UNIR · DAW 1º</title>
+    <link rel="stylesheet" href="styles.css?v=20260926-9" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#semana-actual" aria-label="Ir a la semana actual">
+          <span class="brand-mark">C</span>
+          <span class="brand-name">Companion UNIR <small>DAW · 1º</small></span>
+        </a>
+
+        <nav class="main-nav" aria-label="Vistas del panel">
+          <button class="nav-button is-active" type="button" data-view="weeks" aria-pressed="true">Semanas</button>
+          <button class="nav-button" type="button" data-view="progress" aria-pressed="false">Progreso</button>
+          <button class="nav-button" type="button" data-view="deadlines" aria-pressed="false">Entregas</button>
+          <button class="nav-button" type="button" data-view="curriculum" aria-pressed="false">Temario</button>
+        </nav>
+
+        <div class="header-progress" aria-label="Progreso total">
+          <span id="overallPercent">0%</span>
+          <div class="progress-track" aria-hidden="true"><span id="overallBar"></span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section data-view-panel="weeks">
+        <div class="page-intro">
+          <div>
+            <p class="kicker">Curso 2026–27 · 32 semanas</p>
+            <h1>Qué estudiar cada semana</h1>
+          </div>
+          <div class="page-actions">
+            <label class="filter-field" for="weeksSubjectFilter">
+              <span>Asignatura</span>
+              <select id="weeksSubjectFilter" aria-label="Filtrar semanas por asignatura"></select>
+            </label>
+            <button id="todayButton" class="quiet-button" type="button">Ir a esta semana</button>
+          </div>
+        </div>
+
+        <aside id="nextDeadline" class="next-deadline" aria-live="polite"></aside>
+        <div id="weeksTimeline" class="weeks-timeline" aria-label="Plan de las 32 semanas"></div>
+      </section>
+
+      <section data-view-panel="progress" hidden>
+        <div class="page-intro">
+          <div>
+            <p id="persistenceHint" class="kicker">Guardado solo en este dispositivo</p>
+            <h1>Progreso</h1>
+          </div>
+          <div class="page-actions">
+            <button id="copyProgressButton" class="button primary" type="button">Copiar enlace</button>
+            <button id="resetButton" class="quiet-button" type="button">Reiniciar</button>
+          </div>
+        </div>
+
+        <div id="progressSummary" class="progress-summary"></div>
+        <div id="progressList" class="progress-list"></div>
+        <div class="progress-status">
+          <p id="savedState" class="saved-state" aria-live="polite">Guardado en este dispositivo</p>
+          <p id="shareState" class="share-state" aria-live="polite">El enlace se actualiza con tu progreso.</p>
+        </div>
+      </section>
+
+      <section data-view-panel="deadlines" hidden>
+        <div class="page-intro">
+          <div>
+            <p class="kicker">Fechas comprobadas en Campus</p>
+            <h1>Entregas</h1>
+          </div>
+          <div class="page-actions">
+            <label class="filter-field" for="deadlinesSubjectFilter">
+              <span>Asignatura</span>
+              <select id="deadlinesSubjectFilter" aria-label="Filtrar entregas por asignatura"></select>
+            </label>
+            <a
+              class="quiet-button quiet-link"
+              href="https://campusfp.unir.net/calendar"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Revisar Campus ↗
+            </a>
+          </div>
+        </div>
+        <p class="deadlines-note">
+          Las actividades enlazan directamente con su tarea. Los tests aparecen agrupados cuando comparten fecha y enlazan con el listado de Campus.
+        </p>
+        <div id="deadlinesList" class="deadlines-list"></div>
+      </section>
+
+      <section data-view-panel="curriculum" hidden>
+        <div class="page-intro curriculum-intro">
+          <div>
+            <p class="kicker">7 asignaturas · 65 temas y unidades</p>
+            <h1>Temario</h1>
+          </div>
+          <label class="search-field">
+            <span class="sr-only">Buscar en el temario</span>
+            <input id="curriculumSearch" type="search" placeholder="Buscar un tema…" autocomplete="off" />
+          </label>
+        </div>
+        <div id="curriculumList" class="curriculum-list"></div>
+      </section>
+    </main>
+
+    <dialog id="resetDialog" class="dialog">
+      <form method="dialog" class="dialog-panel">
+        <h2>¿Reiniciar el progreso?</h2>
+        <p>Se borrarán los temas, tests y actividades marcados en este navegador.</p>
+        <div class="dialog-actions">
+          <button value="cancel" class="button secondary">Cancelar</button>
+          <button id="confirmResetButton" value="default" class="button danger">Reiniciar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="curriculum.js"></script>
+    <script src="campus-links.js"></script>
+    <script src="schedule.js?v=20260920-2"></script>
+    <script src="deadlines.js?v=20260926-3"></script>
+    <script src="app.js?v=20260926-10"></script>
+  </body>
+</html>
