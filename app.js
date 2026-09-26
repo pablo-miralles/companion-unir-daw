@@ -269,15 +269,27 @@ function describeProgress(progress) {
   ].join(", ");
 }
 
+function showToast(message) {
+  const toast = document.querySelector("#toast");
+  if (!toast) return;
+  toast.textContent = message;
+  toast.hidden = false;
+  window.clearTimeout(showToast.timer);
+  showToast.timer = window.setTimeout(() => {
+    toast.hidden = true;
+  }, 3600);
+}
+
 function offerUrlStateImport() {
   if (!pendingUrlState || !importDialog) return;
   if (isSameProgress(pendingUrlState, state)) {
     pendingUrlState = null;
+    showToast("Este enlace tiene el mismo progreso que ya tienes guardado.");
     return;
   }
   importDialog.querySelector("#importLocalSummary").textContent = describeProgress(state);
   importDialog.querySelector("#importLinkSummary").textContent = describeProgress(pendingUrlState);
-  importDialog.showModal();
+  if (!importDialog.open) importDialog.showModal();
 }
 
 function clampNumber(value, min, max, fallback) {
@@ -367,6 +379,7 @@ async function initialisePersistence() {
       saveLocalSnapshot(JSON.stringify(state));
       queueServerSnapshot(JSON.stringify(state));
       savedState.textContent = "Progreso recuperado desde el enlace";
+      showToast("Progreso recuperado desde el enlace.");
       shareState.textContent = "Puedes seguir avanzando y crear una copia nueva cuando quieras.";
       return;
     }
@@ -390,6 +403,7 @@ async function initialisePersistence() {
       importedStateFromUrl = false;
       saveLocalSnapshot(JSON.stringify(state));
       savedState.textContent = "Progreso recuperado desde el enlace";
+      showToast("Progreso recuperado desde el enlace.");
       shareState.textContent = "Puedes seguir avanzando y crear una copia nueva cuando quieras.";
     }
     offerUrlStateImport();
@@ -1588,12 +1602,30 @@ document.querySelector("#confirmResetButton").addEventListener("click", (event) 
 resetDialog.addEventListener("click", (event) => {
   if (event.target === resetDialog) resetDialog.close();
 });
+// Pegar un enlace de progreso con la página ya abierta solo cambia el "#": no recarga.
+window.addEventListener("hashchange", () => {
+  const linkedState = loadStateFromUrl();
+  if (!linkedState) return;
+  clearStateFromUrl();
+  if (!hasProgress(state) && hasProgress(linkedState)) {
+    state = linkedState;
+    saveState();
+    renderAll();
+    savedState.textContent = "Progreso recuperado desde el enlace";
+    showToast("Progreso recuperado desde el enlace.");
+    return;
+  }
+  pendingUrlState = linkedState;
+  offerUrlStateImport();
+});
+
 importDialog?.addEventListener("close", () => {
   if (importDialog.returnValue === "link" && pendingUrlState) {
     state = pendingUrlState;
     saveState();
     renderAll();
     savedState.textContent = "Progreso recuperado desde el enlace";
+    showToast("Progreso recuperado desde el enlace.");
   }
   pendingUrlState = null;
   importDialog.returnValue = "";
