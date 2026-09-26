@@ -1900,12 +1900,6 @@ registerProgressTools();
 announceUrlStateImport();
 const initialView = getViewFromUrl() || "weeks";
 document.body.dataset.view = initialView;
-// El botón de ayuda flota encima de la barra de próxima entrega cuando esta se ve.
-if (nextDeadline && "ResizeObserver" in window) {
-  new ResizeObserver(() => {
-    document.body.style.setProperty("--deadline-bar-height", `${nextDeadline.offsetHeight}px`);
-  }).observe(nextDeadline);
-}
 if (initialView !== "weeks") showView(initialView, { updateUrl: false });
 window.setInterval(refreshCurrentWeek, 60 * 1000);
 window.addEventListener("focus", refreshCurrentWeek);
