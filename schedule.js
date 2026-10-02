@@ -2537,3 +2537,16 @@ const WEEK_PHASES = {
     "detail": "El cronograma no asigna temario nuevo."
   }
 };
+
+// Semanas sin temario nuevo que el cronograma de una asignatura nombra de forma propia.
+const SUBJECT_WEEK_NOTES = {
+  "entornos-desarrollo": {
+    10: "Repaso de los temas 1, 2 y 3",
+    20: "Repaso de los temas 4, 5, 6 y 7",
+  },
+  "lenguajes-marcas": {
+    10: "Semana de repaso de los temas 1, 2 y 3",
+    11: "Semana de correcciones",
+    20: "Semana de repaso de los temas 5, 6 y 7",
+  },
+};

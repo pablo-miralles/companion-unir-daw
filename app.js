@@ -570,8 +570,23 @@ function renderTimeline() {
     );
     const phase = WEEK_PHASES[week];
 
-    if (items.length > 0) {
+    const notes = visibleSubjects
+      .filter((subject) => SUBJECT_WEEK_NOTES[subject.id]?.[week] && !items.some((item) => item.subject.id === subject.id))
+      .map((subject) => createWeekNote(subject, SUBJECT_WEEK_NOTES[subject.id][week]));
+
+    if (items.length > 0 || notes.length > 0) {
+      if (items.length === 0 && phase) {
+        const phaseBlock = document.createElement("div");
+        phaseBlock.className = "week-phase";
+        const title = document.createElement("strong");
+        title.textContent = phase.title;
+        const detail = document.createElement("span");
+        detail.textContent = phase.detail;
+        phaseBlock.append(title, detail);
+        content.append(phaseBlock);
+      }
       items.forEach((item) => content.append(createWeekSubject(item)));
+      notes.forEach((note) => content.append(note));
     } else if (phase) {
       const phaseBlock = document.createElement("div");
       phaseBlock.className = "week-phase";
@@ -594,6 +609,9 @@ function renderTimeline() {
       phaseBlock.append(title, detail);
       content.append(phaseBlock);
     }
+
+    const todo = createWeekTodo(week, visibleSubjects, week === currentWeek);
+    if (todo) content.append(todo);
 
     section.append(meta, content);
     if (isPast) {
@@ -1010,6 +1028,157 @@ function toggleDeliverable(subjectId, kind, index) {
   renderAll();
 }
 
+// ───────── Recomendaciones de tests y actividades (según el cronograma de Campus) ─────────
+function getRecommendedWeek(subjectId, kind, index) {
+  const weeks = RECOMMENDED_WEEKS[subjectId]?.[kind === "test" ? "tests" : "activities"];
+  return weeks?.[index] ?? null;
+}
+
+function formatWeekStart(subjectId, week) {
+  const range = WEEK_DATES[subjectId]?.[week];
+  return range ? formatDay(parseSourceDate(range.start)) : "";
+}
+
+function describeRecommendation(subjectId, kind, index) {
+  const week = getRecommendedWeek(subjectId, kind, index);
+  if (!week) return "Sin semana recomendada en el cronograma de Campus";
+  const verb = kind === "test" ? "Recomendado a partir de" : "Se explica en";
+  return `${verb} la semana ${week} (${formatWeekStart(subjectId, week)})`;
+}
+
+function getDeliverableLabel(subject, kind, index) {
+  if (kind === "test") return `Test del ${subject.topicLabel.toLowerCase()} ${index + 1}`;
+  return getSubjectActivities(subject.id)[index]?.title || `Actividad ${index + 1}`;
+}
+
+// Tests y actividades que el cronograma coloca en una semana concreta.
+function getWeekDeliverables(week, subjects) {
+  const items = [];
+  subjects.forEach((subject) => {
+    const subjectState = state[subject.id];
+    (RECOMMENDED_WEEKS[subject.id]?.tests || []).forEach((recommended, index) => {
+      if (recommended === week) items.push({ subject, kind: "test", index, done: subjectState.tests[index] });
+    });
+    (RECOMMENDED_WEEKS[subject.id]?.activities || []).forEach((recommended, index) => {
+      if (recommended === week) {
+        items.push({ subject, kind: "activity", index, done: subjectState.activities[index] });
+      }
+    });
+  });
+  return items;
+}
+
+// Lo recomendado antes de esta semana que sigue sin hacer (y, si es actividad, aún se puede entregar).
+function getOverdueDeliverables(week, subjects) {
+  const now = new Date();
+  const items = [];
+  subjects.forEach((subject) => {
+    const subjectState = state[subject.id];
+    (RECOMMENDED_WEEKS[subject.id]?.tests || []).forEach((recommended, index) => {
+      if (recommended && recommended < week && !subjectState.tests[index]) {
+        items.push({ subject, kind: "test", index, done: false });
+      }
+    });
+    (RECOMMENDED_WEEKS[subject.id]?.activities || []).forEach((recommended, index) => {
+      const deadline = getSubjectActivities(subject.id)[index];
+      if (recommended && recommended < week && !subjectState.activities[index] && deadline && new Date(deadline.due) >= now) {
+        items.push({ subject, kind: "activity", index, done: false });
+      }
+    });
+  });
+  return items;
+}
+
+function createTodoItem({ subject, kind, index, done }, week) {
+  const item = document.createElement("li");
+  item.className = `week-todo-item${done ? " is-complete" : ""}`;
+  item.dataset.subject = subject.id;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `todo-check${done ? " is-complete" : ""}`;
+  button.dataset.deliverable = kind;
+  button.dataset.subjectId = subject.id;
+  button.dataset.index = String(index);
+  button.setAttribute("aria-pressed", String(Boolean(done)));
+  const label = getDeliverableLabel(subject, kind, index);
+  button.setAttribute("aria-label", `${label} de ${subject.name}: ${done ? "hecho" : "pendiente"}`);
+  const box = document.createElement("span");
+  box.className = "week-check-box";
+  box.setAttribute("aria-hidden", "true");
+  box.textContent = "✓";
+  button.append(box);
+
+  const copy = document.createElement("span");
+  copy.className = "week-todo-copy";
+  const title = document.createElement("strong");
+  title.textContent = label;
+  const meta = document.createElement("span");
+  const code = document.createElement("span");
+  code.className = "subject-code";
+  code.textContent = subject.short;
+  const metaText = document.createElement("span");
+  metaText.textContent = subject.name;
+  if (kind === "activity") {
+    const deadline = getSubjectActivities(subject.id)[index];
+    const recommended = getRecommendedWeek(subject.id, kind, index);
+    const when = recommended === week ? "se explica esta semana" : `se explicó en la semana ${recommended}`;
+    if (deadline) {
+      const due = formatDeadlineParts(deadline.due);
+      metaText.textContent += ` · ${when} · entrega ${due.day} ${due.month.toLowerCase()}`;
+    }
+  }
+  meta.append(code, metaText);
+  copy.append(title, meta);
+  item.append(button, copy);
+  return item;
+}
+
+function createWeekTodo(week, subjects, isCurrentWeek) {
+  const current = getWeekDeliverables(week, subjects);
+  const overdue = isCurrentWeek ? getOverdueDeliverables(week, subjects) : [];
+  if (current.length === 0 && overdue.length === 0) return null;
+  const block = document.createElement("div");
+  block.className = "week-todo";
+  const addGroup = (heading, items) => {
+    if (items.length === 0) return;
+    const title = document.createElement("h4");
+    title.textContent = heading;
+    const list = document.createElement("ul");
+    items.forEach((item) => list.append(createTodoItem(item, week)));
+    block.append(title, list);
+  };
+  addGroup("Para hacer esta semana", current);
+  addGroup("Pendiente de semanas anteriores", overdue);
+  return block;
+}
+
+function createWeekNote(subject, text) {
+  const row = document.createElement("article");
+  row.className = "week-subject week-note-row";
+  row.dataset.subject = subject.id;
+  const label = document.createElement("div");
+  label.className = "subject-label";
+  const code = document.createElement("span");
+  code.className = "subject-code";
+  code.textContent = subject.short;
+  const labelCopy = document.createElement("div");
+  labelCopy.className = "subject-label-copy";
+  const name = document.createElement("span");
+  name.textContent = subject.name;
+  labelCopy.append(name);
+  label.append(code, labelCopy);
+  const copy = document.createElement("div");
+  copy.className = "study-copy";
+  const title = document.createElement("h3");
+  title.textContent = text;
+  const detail = document.createElement("p");
+  detail.className = "no-subtopics";
+  detail.textContent = "Sin temario nuevo esta semana en esta asignatura.";
+  copy.append(title, detail);
+  row.append(label, copy);
+  return row;
+}
+
 function createDeliverableControl(deadline, subject) {
   const subjectState = state[subject.id];
   if (deadline.type === "Tests") {
@@ -1033,7 +1202,10 @@ function createDeliverableControl(deadline, subject) {
         "aria-label",
         `Test del ${subject.topicLabel.toLowerCase()} ${index + 1}: ${done ? "hecho" : "pendiente"}`,
       );
-      button.title = `Test del ${subject.topicLabel.toLowerCase()} ${index + 1}`;
+      const recommendedWeek = getRecommendedWeek(subject.id, "test", index);
+      const isEarly = !done && recommendedWeek && recommendedWeek > getPlanningContext().week;
+      button.classList.toggle("is-early", Boolean(isEarly));
+      button.title = `Test del ${subject.topicLabel.toLowerCase()} ${index + 1} · ${describeRecommendation(subject.id, "test", index)}${isEarly ? ": aún no has llegado a este tema" : ""}`;
       button.textContent = String(index + 1);
       wrap.append(button);
     });
@@ -1132,6 +1304,12 @@ function renderDeadlines() {
       type.textContent = deadline.type;
       meta.append(type, document.createTextNode(subject.name));
       content.append(title, meta);
+      if (deadline.type !== "Tests") {
+        const hint = document.createElement("span");
+        hint.className = "deadline-recommendation";
+        hint.textContent = describeRecommendation(subject.id, "activity", getActivityIndex(deadline));
+        content.append(hint);
+      }
 
       const details = document.createElement("div");
       details.className = "deadline-details";
@@ -1682,6 +1860,17 @@ function launchConfetti(origin) {
 function celebrateIfMarking(button) {
   if (button?.getAttribute("aria-pressed") === "false") launchConfetti(button);
 }
+
+weeksTimeline.addEventListener("click", (event) => {
+  const control = event.target.closest("button[data-deliverable]");
+  if (!control) return;
+  celebrateIfMarking(control);
+  toggleDeliverable(
+    control.dataset.subjectId,
+    control.dataset.deliverable,
+    Number.parseInt(control.dataset.index, 10),
+  );
+});
 
 [weeksTimeline, progressList].forEach((container) => {
   container.addEventListener("click", (event) => {

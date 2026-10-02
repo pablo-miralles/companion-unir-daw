@@ -247,3 +247,16 @@ DEADLINES.forEach((deadline) => {
 });
 
 const MISSING_DEADLINE_SOURCES = [];
+
+// Semana en la que el cronograma de Campus coloca cada test y actividad.
+// Es una recomendación ("hazlo a partir de esta semana"), no un bloqueo: en Campus todo está abierto.
+// tests: una semana por tema (null = el cronograma no lo sitúa). activities: en orden de entrega.
+const RECOMMENDED_WEEKS = {
+  "bases-datos": { tests: [4, 7, 10, 13, 15, 17, 20, 23, 26, 28], activities: [6, 16, 24] },
+  programacion: { tests: [3, 5, 7, 10, 14, 16, 18, 20, 25, 28], activities: [8, 18, 25] },
+  "sistemas-informaticos": { tests: [4, 7, 10, 13, 15, 17, 20, 23, 26, 28], activities: [4, 14, 22] },
+  empleabilidad: { tests: [5, 8, 10, 13, 16, 20, 22, 24, 26, 28], activities: [3, 13] },
+  ingles: { tests: [6, 10, 16, 20, 28], activities: [] },
+  "entornos-desarrollo": { tests: [null, 7, 9, 14, 16, 18, 19, 23, 26, 28], activities: [5, 15] },
+  "lenguajes-marcas": { tests: [4, 6, 8, 13, 15, 17, 19, 23, 26, 28], activities: [7, 17] },
+};

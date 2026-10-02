@@ -1414,6 +1414,127 @@ h1 {
   color: var(--red);
 }
 
+/* ───────── Para hacer esta semana ───────── */
+
+.week-note-row .study-copy h3 {
+  color: var(--ink-soft);
+}
+
+.week-todo {
+  padding: 18px 24px 20px;
+  border-top: 1px dashed var(--line-strong);
+  background: #fafbfc;
+}
+
+.week-todo h4 {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.week-todo h4 + ul {
+  margin-bottom: 16px;
+}
+
+.week-todo ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.week-todo ul:last-child {
+  margin-bottom: 0;
+}
+
+.week-todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.todo-check {
+  display: grid;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.todo-check .week-check-box {
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+}
+
+.todo-check:hover .week-check-box {
+  border-color: var(--subject, var(--blue));
+}
+
+.todo-check.is-complete .week-check-box {
+  border-color: var(--subject, var(--blue));
+  background: var(--subject, var(--blue));
+  color: #fff;
+}
+
+.week-todo-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.week-todo-copy strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.week-todo-copy > span {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.week-todo-copy .subject-code {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  width: 24px;
+  height: 18px;
+  border-radius: 5px;
+  font-size: 9px;
+}
+
+.week-todo-item.is-complete .week-todo-copy {
+  opacity: .5;
+}
+
+.week-todo-item.is-complete .week-todo-copy strong {
+  text-decoration: line-through;
+}
+
+.test-check.is-early {
+  border-style: dashed;
+  color: var(--faint);
+}
+
+.deadline-recommendation {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.deadline-recommendation::before {
+  margin-right: 5px;
+  content: "◷";
+}
+
+.deadlines-points {
+  margin-top: -16px;
+}
+
 /* ───────── Entregas ───────── */
 
 .deadlines-note {
@@ -2311,7 +2432,8 @@ h1 {
   }
 
   .week-subject,
-  .week-phase {
+  .week-phase,
+  .week-todo {
     padding: 18px 16px;
   }
 
