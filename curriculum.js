@@ -107,7 +107,7 @@ const CURRICULUM = [
     activitiesTotal: 2,
     topics: [
       { number: 1, title: "Seguridad y salud en el trabajo", weeks: [3, 5] },
-      { number: 2, title: "La prevención en la empresa", weeks: [7, 8] },
+      { number: 2, title: "La prevención en la empresa", weeks: [6, 8] },
       { number: 3, title: "Prevención y actuación en caso de emergencia", weeks: [9, 10] },
       { number: 4, title: "La relación laboral", weeks: [12, 13] },
       { number: 5, title: "El contrato de trabajo y la jornada laboral", weeks: [14, 16] },

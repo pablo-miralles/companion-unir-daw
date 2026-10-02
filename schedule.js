@@ -752,6 +752,19 @@ const WEEKLY_STUDY = {
       ],
       "topic": 1
     },
+    "6": {
+      "heading": "Tema 2. La prevención en la empresa",
+      "subtopics": [
+        "2.1. Introducción y objetivos",
+        "2.2. La evaluación de riesgos como elemento básico de la actividad preventiva",
+        "2.3. Análisis de riesgos ligados a las condiciones de seguridad",
+        "2.4. Análisis de riesgos laborales ligados a las condiciones ambientales",
+        "2.5. Análisis de riesgos ligados a las condiciones ergonómicas y psicosociales",
+        "2.6. Aplicación de las medidas de prevención",
+        "2.7. Medidas de protección"
+      ],
+      "topic": 2
+    },
     "7": {
       "heading": "Tema 2. La prevención en la empresa",
       "subtopics": [
