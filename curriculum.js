@@ -67,7 +67,7 @@ const CURRICULUM = [
     url: "https://campusfp.unir.net/courses/3430",
     topicLabel: "Tema",
     testsTotal: 10,
-    activitiesTotal: 3,
+    activitiesTotal: 2,
     topics: [
       { number: 1, title: "Concepto de programa", weeks: [3, 4] },
       { number: 2, title: "Ingeniería de software", weeks: [5, 7] },
