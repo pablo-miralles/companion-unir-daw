@@ -659,48 +659,83 @@ function getPendingStudyBlocks(currentWeek, subjects) {
 }
 
 function createPendingWeeksBox(currentWeek, subjects) {
+  const activities = getPendingActivities(currentWeek, subjects);
   const blocks = getPendingStudyBlocks(currentWeek, subjects);
-  if (blocks.length === 0) return null;
+  if (activities.length === 0 && blocks.length === 0) return null;
+
   const box = document.createElement("aside");
   box.className = "weeks-pending";
   const title = document.createElement("h2");
-  title.textContent =
-    blocks.length === 1
-      ? "Te falta 1 bloque de semanas anteriores"
-      : `Te faltan ${blocks.length} bloques de semanas anteriores`;
+  title.textContent = "Para ponerte al día";
   const hint = document.createElement("p");
-  hint.textContent = "Márcalos como «¿Estudiado?» cuando los repases y desaparecerán de aquí.";
-  const list = document.createElement("ul");
-  const limit = pendingWeeksExpanded ? blocks.length : 6;
-  blocks.slice(0, limit).forEach(({ subject, week, heading }) => {
-    const item = document.createElement("li");
-    item.dataset.subject = subject.id;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.dataset.scrollWeek = String(week);
-    const code = document.createElement("span");
-    code.className = "subject-code";
-    code.textContent = subject.short;
-    const text = document.createElement("span");
-    text.className = "weeks-pending-text";
-    const when = document.createElement("strong");
-    when.textContent = `Semana ${week}`;
-    text.append(when, document.createTextNode(` · ${heading}`));
-    const go = document.createElement("span");
-    go.className = "weeks-pending-go";
-    go.textContent = "Ir →";
-    button.append(code, text, go);
-    item.append(button);
-    list.append(item);
+  hint.textContent =
+    activities.length > 0
+      ? "Sin agobios: céntrate primero en las actividades, que son lo que más puntúa. Lo demás, poco a poco."
+      : "Sin agobios: repásalo poco a poco y márcalo como «¿Estudiado?» cuando lo tengas.";
+  box.append(title, hint);
+
+  if (activities.length > 0) {
+    const heading = document.createElement("h3");
+    heading.textContent = "Actividades pendientes";
+    const list = document.createElement("ul");
+    list.className = "weeks-pending-activities";
+    activities.forEach((item) => list.append(createTodoItem(item, currentWeek)));
+    box.append(heading, list);
+  }
+
+  // Agrupado por semana: una línea por semana, "toda la semana" si no se ha marcado nada.
+  const byWeek = new Map();
+  blocks.forEach((block) => {
+    if (!byWeek.has(block.week)) byWeek.set(block.week, []);
+    byWeek.get(block.week).push(block.subject);
   });
-  box.append(title, hint, list);
-  if (blocks.length > 6) {
-    const more = document.createElement("button");
-    more.type = "button";
-    more.className = "weeks-pending-more";
-    more.dataset.togglePending = "1";
-    more.textContent = pendingWeeksExpanded ? "Ver menos" : `Ver los ${blocks.length - 6} restantes`;
-    box.append(more);
+  if (byWeek.size > 0) {
+    const heading = document.createElement("h3");
+    heading.textContent = byWeek.size === 1 ? "1 semana por repasar" : `${byWeek.size} semanas por repasar`;
+    const list = document.createElement("ul");
+    list.className = "weeks-pending-weeks";
+    const weeks = [...byWeek.entries()];
+    const limit = pendingWeeksExpanded ? weeks.length : 4;
+    weeks.slice(0, limit).forEach(([week, pendingSubjects]) => {
+      const total = getWeekItems(week).filter(({ subject }) => subjects.some((candidate) => candidate.id === subject.id)).length;
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.scrollWeek = String(week);
+      const when = document.createElement("strong");
+      when.className = "weeks-pending-week";
+      when.textContent = `Semana ${week}`;
+      const text = document.createElement("span");
+      text.className = "weeks-pending-text";
+      if (pendingSubjects.length === total && total > 1) {
+        text.textContent = "Toda la semana";
+      } else {
+        text.append(document.createTextNode("Te falta: "));
+        pendingSubjects.forEach((subject) => {
+          const code = document.createElement("span");
+          code.className = "subject-code";
+          code.dataset.subject = subject.id;
+          code.textContent = subject.short;
+          code.title = subject.name;
+          text.append(code);
+        });
+      }
+      const go = document.createElement("span");
+      go.className = "weeks-pending-go";
+      go.textContent = "Ir →";
+      button.append(when, text, go);
+      item.append(button);
+      list.append(item);
+    });
+    box.append(heading, list);
+    if (weeks.length > 4) {
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "weeks-pending-more";
+      more.dataset.togglePending = "1";
+      more.textContent = pendingWeeksExpanded ? "Ver menos" : `Ver ${weeks.length - 4} más`;
+      box.append(more);
+    }
   }
   return box;
 }
@@ -1152,9 +1187,8 @@ function getWeekDeliverables(week, subjects) {
   return items;
 }
 
-// Lo recomendado antes de esta semana que sigue sin hacer (y, si es actividad, aún se puede entregar).
+// Tests recomendados antes de esta semana que siguen sin hacer.
 function getOverdueDeliverables(week, subjects) {
-  const now = new Date();
   const items = [];
   subjects.forEach((subject) => {
     const subjectState = state[subject.id];
@@ -1163,14 +1197,23 @@ function getOverdueDeliverables(week, subjects) {
         items.push({ subject, kind: "test", index, done: false });
       }
     });
-    (RECOMMENDED_WEEKS[subject.id]?.activities || []).forEach((recommended, index) => {
-      const deadline = getSubjectActivities(subject.id)[index];
-      if (recommended && recommended < week && !subjectState.activities[index] && deadline && new Date(deadline.due) >= now) {
-        items.push({ subject, kind: "activity", index, done: false });
-      }
-    });
   });
   return items;
+}
+
+// Actividades ya explicadas, sin entregar y aún dentro de plazo.
+function getPendingActivities(week, subjects) {
+  const now = new Date();
+  const items = [];
+  subjects.forEach((subject) => {
+    (RECOMMENDED_WEEKS[subject.id]?.activities || []).forEach((recommended, index) => {
+      const deadline = getSubjectActivities(subject.id)[index];
+      if (!recommended || recommended >= week || state[subject.id].activities[index]) return;
+      if (!deadline || new Date(deadline.due) < now) return;
+      items.push({ subject, kind: "activity", index, done: false, due: new Date(deadline.due) });
+    });
+  });
+  return items.sort((a, b) => a.due - b.due);
 }
 
 function createTodoItem({ subject, kind, index, done }, week) {
@@ -1208,7 +1251,9 @@ function createTodoItem({ subject, kind, index, done }, week) {
     const when = recommended === week ? "se explica esta semana" : `se explicó en la semana ${recommended}`;
     if (deadline) {
       const due = formatDeadlineParts(deadline.due);
-      metaText.textContent += ` · ${when} · entrega ${due.day} ${due.month.toLowerCase()}`;
+      const daysLeft = Math.ceil((new Date(deadline.due) - new Date()) / 86400000);
+      const left = daysLeft <= 0 ? "vence hoy" : daysLeft === 1 ? "queda 1 día" : `quedan ${daysLeft} días`;
+      metaText.textContent += ` · ${when} · entrega ${due.day} ${due.month.toLowerCase()} · ${left}`;
     }
   }
   meta.append(code, metaText);

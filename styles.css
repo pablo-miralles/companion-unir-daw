@@ -1399,7 +1399,7 @@ h1 {
   list-style: none;
 }
 
-.weeks-pending li button {
+.weeks-pending-weeks button {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1415,8 +1415,34 @@ h1 {
   transition: border-color 140ms ease;
 }
 
-.weeks-pending li button:hover {
+.weeks-pending-weeks button:hover {
   border-color: var(--subject, var(--blue));
+}
+
+.weeks-pending h3 {
+  margin: 16px 0 8px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.weeks-pending-activities .week-todo-item {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, #d97706 25%, white);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.weeks-pending-week {
+  flex: 0 0 auto;
+  min-width: 78px;
+}
+
+.weeks-pending .weeks-pending-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
 }
 
 .weeks-pending .subject-code {
