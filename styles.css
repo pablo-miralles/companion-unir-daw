@@ -1618,6 +1618,26 @@ h1 {
   color: var(--faint);
 }
 
+.deadline-row.is-overdue {
+  box-shadow: inset 3px 0 0 #dc2626;
+}
+
+.deadline-overdue {
+  display: inline-block !important;
+  justify-self: start;
+  margin-top: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.deadline-row.is-overdue .deadline-recommendation {
+  display: none;
+}
+
 .deadline-recommendation {
   margin-top: 3px;
   color: var(--muted);
@@ -1655,7 +1675,7 @@ h1 {
   align-items: stretch;
 }
 
-.deadline-group.is-past {
+.deadline-group.is-past .deadline-group-heading {
   opacity: .5;
 }
 

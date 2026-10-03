@@ -1356,7 +1356,8 @@ function createDeliverableControl(deadline, subject) {
   box.setAttribute("aria-hidden", "true");
   box.textContent = "✓";
   const text = document.createElement("span");
-  text.textContent = done ? "Entregada" : "¿Entregada?";
+  const isPastDue = new Date(deadline.due) < new Date();
+  text.textContent = done ? "Entregada" : isPastDue ? "¿La entregaste?" : "¿Entregada?";
   button.append(box, text);
   return button;
 }
@@ -1416,7 +1417,9 @@ function renderDeadlines() {
 
       const row = document.createElement("article");
       const done = isDeliverableDone(deadline);
-      row.className = `deadline-row${new Date(deadline.due) < now ? " is-past" : ""}${done ? " is-done" : ""}${deadline.type === "Tests" ? " is-tests" : ""}`;
+      const isPastDue = new Date(deadline.due) < now;
+      const isOverdue = isPastDue && !done;
+      row.className = `deadline-row${isPastDue ? " is-past" : ""}${done ? " is-done" : ""}${isOverdue ? " is-overdue" : ""}${deadline.type === "Tests" ? " is-tests" : ""}`;
       row.dataset.subject = subject.id;
 
       const code = document.createElement("span");
@@ -1433,6 +1436,15 @@ function renderDeadlines() {
       type.textContent = deadline.type;
       meta.append(type, document.createTextNode(subject.name));
       content.append(title, meta);
+      if (isOverdue) {
+        const overdue = document.createElement("span");
+        overdue.className = "deadline-overdue";
+        overdue.textContent =
+          deadline.type === "Tests"
+            ? "Plazo cerrado: puedes marcar igualmente los tests que hiciste"
+            : "Vencida: si la entregaste, puedes marcarla igualmente";
+        content.append(overdue);
+      }
       if (deadline.type !== "Tests") {
         const hint = document.createElement("span");
         hint.className = "deadline-recommendation";
