@@ -2172,6 +2172,129 @@ h1 {
   background: var(--blue-soft);
 }
 
+.guide-steps {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+  counter-reset: guide-step;
+}
+
+.guide-steps li {
+  position: relative;
+  padding: 14px 16px 14px 56px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.55;
+  counter-increment: guide-step;
+}
+
+.guide-steps li::before {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  content: counter(guide-step);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.guide-steps strong {
+  display: block;
+  color: var(--ink);
+}
+
+.guide-legend-title {
+  margin: 22px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.guide-legend {
+  display: grid;
+  gap: 0;
+  padding: 4px 18px;
+}
+
+.guide-legend-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.guide-legend-row:first-child {
+  border-top: 0;
+}
+
+.guide-legend-row p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.guide-legend-row p strong {
+  color: var(--ink);
+}
+
+.guide-legend-visual {
+  display: flex;
+  align-items: center;
+}
+
+.guide-legend .current-label {
+  margin: 0;
+}
+
+.guide-legend .topic-dot {
+  width: 32px;
+}
+
+.guide-legend .deadline-overdue {
+  margin-top: 0;
+}
+
+.guide-tabs {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.guide-tabs > div {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.guide-tabs dt {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.guide-tabs dd {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
 .guide-footer {
   padding: 32px 0 0;
   border-top: 1px solid var(--line);
@@ -2339,6 +2462,16 @@ h1 {
 @media (max-width: 760px) {
   .guide-example {
     padding: 10px;
+  }
+
+  .guide-legend {
+    padding: 4px 14px;
+  }
+
+  .guide-legend-row,
+  .guide-tabs > div {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 
   .guide-section > h2 {

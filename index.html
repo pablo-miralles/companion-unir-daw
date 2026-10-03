@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap"
     />
     <title>Companion UNIR · DAW 1º</title>
-    <link rel="stylesheet" href="styles.css?v=20261003-4" />
+    <link rel="stylesheet" href="styles.css?v=20261003-5" />
   </head>
   <body>
     <header class="site-header">
@@ -206,188 +206,156 @@
       <section data-view-panel="guide" hidden>
         <article class="guide-article">
           <header class="guide-header">
-            <p class="kicker">Guía rápida · 3 minutos de lectura</p>
+            <p class="kicker">Guía rápida · 2 minutos de lectura</p>
             <h1>Cómo usar el companion</h1>
             <p class="guide-lead">
-              Te dice qué estudiar cada semana y te ayuda a llevar la cuenta de lo que llevas. No necesitas cuenta ni
-              instalar nada: todo se guarda solo en tu navegador. Los ejemplos de esta página son solo ilustrativos; no
-              se pueden pulsar.
+              Te dice qué estudiar cada semana y lleva la cuenta de lo que vas haciendo. No hace falta cuenta ni instalar
+              nada. Los ejemplos de esta página son solo dibujos: no se pueden pulsar.
             </p>
           </header>
 
           <section class="guide-section">
-            <h2><span>1</span>Semanas: qué toca estudiar</h2>
-            <p>
-              Cada semana aparece con un bloque por asignatura: el tema, sus apartados y enlaces al tema en Campus y a
-              su resumen en Compendio DAW. La página empieza por la semana actual. Si vas con retraso, justo encima
-              aparece «Para ponerte al día»: primero las actividades pendientes, que son lo que más puntúa, y después
-              las semanas que te quedan por repasar. Más abajo tienes todas las semanas en orden. Abajo tienes siempre a la vista tu próxima entrega.
-            </p>
-            <p class="guide-example-label">Así se ve un bloque sin estudiar y otro ya estudiado:</p>
-            <div class="guide-example" inert aria-hidden="true">
-              <div class="week-content">
-                <article class="week-subject" data-subject="bases-datos">
-                  <div class="subject-label">
-                    <span class="subject-code">BD</span>
-                    <div class="subject-label-copy"><span>Bases de datos</span><span class="subject-row-date">28 sept — 2 oct</span></div>
-                  </div>
-                  <div class="study-copy">
-                    <h3>Tema 1. Sistemas de almacenamiento de la información</h3>
-                    <ul>
-                      <li>1.1. Introducción y objetivos</li>
-                      <li>1.2. Sistemas lógicos de almacenamiento</li>
-                    </ul>
-                    <div class="study-links"><span class="material-link">Tema en Campus ↗</span><span class="material-link">Resumen ↗</span></div>
-                  </div>
-                  <div class="study-actions">
-                    <span class="week-check"><span class="week-check-box">✓</span><span>¿Estudiado?</span></span>
-                  </div>
-                </article>
-                <article class="week-subject is-studied" data-subject="programacion">
-                  <div class="subject-label">
-                    <span class="subject-code">PR</span>
-                    <div class="subject-label-copy"><span>Programación</span><span class="subject-row-date">28 sept — 2 oct</span></div>
-                  </div>
-                  <div class="study-copy">
-                    <h3>Tema 1. Introducción a la programación</h3>
-                    <ul>
-                      <li>1.1. Conceptos básicos de programación</li>
-                    </ul>
-                  </div>
-                  <div class="study-actions">
-                    <span class="week-check is-complete"><span class="week-check-box">✓</span><span>Estudiado</span></span>
-                  </div>
-                </article>
-              </div>
-            </div>
-            <ul class="guide-points">
-              <li>Pulsa <strong>«¿Estudiado?»</strong> cuando termines ese bloque. El bloque se atenúa para que veas qué te queda.</li>
-              <li>Cuando marcas todas las semanas de un tema, el tema se da por <strong>completado</strong> solo.</li>
+            <h2><span>1</span>Lo básico</h2>
+            <ol class="guide-steps">
               <li>
-                Al final de cada semana, <strong>«Para hacer esta semana»</strong> te dice qué tests y actividades recomienda
-                el cronograma de Campus para esa semana. Lo que se te haya quedado atrás aparece en la semana actual como
-                pendiente.
+                <strong>Abre Semanas.</strong>
+                Arriba del todo está la semana actual, con lo que toca estudiar de cada asignatura.
               </li>
               <li>
-                <strong>«Horario de clases ↗»</strong>, arriba, abre el calendario de Campus: el horario de clases y
-                tutorías cambia según la semana, así que lo más fiable es consultarlo ahí.
+                <strong>Cuando termines un bloque, pulsa «¿Estudiado?».</strong>
+                Así sabes qué te queda.
+              </li>
+              <li>
+                <strong>Cuando entregues algo en Campus, márcalo aquí.</strong>
+                Actividades y tests se pueden marcar en Semanas o en Entregas.
+              </li>
+            </ol>
+            <p class="guide-tip">
+              <strong>Eso es todo.</strong> Lo demás (temas completados, contadores y progreso) se actualiza solo.
+            </p>
+          </section>
+
+          <section class="guide-section">
+            <h2><span>2</span>Qué significa cada cosa</h2>
+
+            <h3 class="guide-legend-title">Semanas</h3>
+            <div class="guide-example guide-legend" inert aria-hidden="true">
+              <div class="guide-legend-row">
+                <div class="guide-legend-visual"><span class="current-label">Ahora</span></div>
+                <p>La semana que toca. Es lo que verán en clase la semana que viene, así que vas un paso por delante.</p>
+              </div>
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="week-check"><span class="week-check-box">✓</span><span>¿Estudiado?</span></span></div>
+                <p>Aún no lo has estudiado. Púlsalo cuando termines ese bloque.</p>
+              </div>
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="week-check is-complete"><span class="week-check-box">✓</span><span>Estudiado</span></span></div>
+                <p>Ya lo has estudiado. El bloque se ve más clarito para que destaque lo que falta.</p>
+              </div>
+            </div>
+
+            <h3 class="guide-legend-title">Temas</h3>
+            <div class="guide-example guide-legend" inert aria-hidden="true">
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="topic-dot">4</span></div>
+                <p><strong>Sin empezar.</strong></p>
+              </div>
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="topic-dot is-progress">3</span></div>
+                <p><strong>En progreso:</strong> has marcado alguna semana de ese tema, pero no todas.</p>
+              </div>
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="topic-dot is-complete">2</span></div>
+                <p><strong>Completado:</strong> has marcado todas sus semanas, o lo has completado tú pulsando el número.</p>
+              </div>
+            </div>
+
+            <h3 class="guide-legend-title">Tests y actividades</h3>
+            <div class="guide-example guide-legend" inert aria-hidden="true">
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="test-check is-complete">1</span></div>
+                <p><strong>Test hecho.</strong></p>
+              </div>
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="test-check">2</span></div>
+                <p><strong>Test pendiente.</strong></p>
+              </div>
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="test-check is-early">7</span></div>
+                <p><strong>Borde discontinuo:</strong> es de un tema al que aún no has llegado. Mejor esperar.</p>
+              </div>
+              <div class="guide-legend-row" data-subject="bases-datos">
+                <div class="guide-legend-visual"><span class="week-check deliverable-check"><span class="week-check-box">✓</span><span>¿Entregada?</span></span></div>
+                <p>Actividad sin entregar. Púlsalo cuando la entregues en Campus.</p>
+              </div>
+              <div class="guide-legend-row">
+                <div class="guide-legend-visual"><span class="deadline-overdue">Vencida</span></div>
+                <p>Pasó la fecha y no la marcaste. Si en realidad la entregaste, márcala igualmente.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="guide-section">
+            <h2><span>3</span>Lo que pasa solo</h2>
+            <ul class="guide-points">
+              <li>
+                Si marcas <strong>todas las semanas de un tema</strong>, el tema se completa solo. Si desmarcas una, vuelve
+                a «en progreso».
+              </li>
+              <li>
+                Si completas un tema en <strong>Progreso</strong>, te pregunta si quieres marcar también sus semanas. Al
+                desmarcarlo, igual.
+              </li>
+              <li>
+                Un test o una actividad que marcas en un sitio aparece marcado en todos: Semanas, Entregas y Progreso.
+              </li>
+              <li>
+                Si vas con retraso, arriba de Semanas aparece <strong>«Para ponerte al día»</strong>: primero las
+                actividades pendientes, que es lo que más puntúa, y luego las semanas que te faltan. Desaparece en cuanto
+                lo tienes todo marcado.
               </li>
             </ul>
           </section>
 
           <section class="guide-section">
-            <h2><span>2</span>Entregas: actividades y tests</h2>
-            <p>
-              Todas las fechas de entrega, ordenadas. Cuando entregues algo en Campus, márcalo aquí para llevar la
-              cuenta.
-            </p>
-            <p class="guide-example-label">Así se marca una actividad y los tests:</p>
-            <div class="guide-example" inert aria-hidden="true">
-              <div class="deadline-items">
-                <article class="deadline-row is-done" data-subject="empleabilidad">
-                  <span class="subject-code">IE</span>
-                  <div class="deadline-content">
-                    <strong>Actividad 1 individual</strong>
-                    <span><span class="deadline-type is-activity">Actividad</span>Itinerario para la empleabilidad</span>
-                  </div>
-                  <div class="deadline-details"><span>2,5 puntos</span><span class="material-link">Campus ↗</span></div>
-                  <span class="week-check deliverable-check is-complete"><span class="week-check-box">✓</span><span>Entregada</span></span>
-                </article>
-                <article class="deadline-row is-tests" data-subject="bases-datos">
-                  <span class="subject-code">BD</span>
-                  <div class="deadline-content">
-                    <strong>Tests de los temas 1–10</strong>
-                    <span><span class="deadline-type is-test">Tests</span>Bases de datos</span>
-                  </div>
-                  <div class="deadline-details"><span>1 punto cada uno</span></div>
-                  <div class="test-checks">
-                    <span class="test-checks-count">3/10 hechos</span>
-                    <span class="test-check is-complete">1</span><span class="test-check is-complete">2</span><span class="test-check is-complete">3</span><span class="test-check">4</span><span class="test-check">5</span><span class="test-check">6</span><span class="test-check">7</span><span class="test-check">8</span><span class="test-check">9</span><span class="test-check">10</span>
-                  </div>
-                </article>
+            <h2><span>4</span>Las pestañas</h2>
+            <dl class="guide-tabs">
+              <div>
+                <dt>Semanas</dt>
+                <dd>
+                  La semana actual arriba y, debajo, todas las semanas en orden. Al final de cada una, «Para hacer esta
+                  semana» te dice qué tests y actividades tocan. Abajo tienes siempre a la vista tu próxima entrega, y
+                  «Horario de clases ↗» abre el calendario de Campus.
+                </dd>
               </div>
-            </div>
-            <ul class="guide-points">
-              <li>Pulsa <strong>«¿Entregada?»</strong> en cada actividad que entregues.</li>
-              <li>En los tests, pulsa el <strong>número</strong> de cada uno que vayas haciendo.</li>
-              <li>Los números con borde discontinuo son tests de temas a los que aún no has llegado: mejor esperar.</li>
-              <li>Todo lo que marques aquí se refleja en Progreso.</li>
-            </ul>
-          </section>
-
-          <section class="guide-section">
-            <h2><span>3</span>Progreso: cómo vas y temario</h2>
-            <p>
-              El resumen de cada asignatura: sus temas, tests y actividades. Aquí está también el
-              <strong>temario completo</strong>, con un buscador arriba.
-            </p>
-            <p class="guide-example-label">Así se ve una asignatura con temas completados y uno en progreso:</p>
-            <div class="guide-example" inert aria-hidden="true">
-              <div class="progress-list">
-                <article class="progress-row" data-subject="bases-datos">
-                  <div class="progress-name">
-                    <span class="subject-code">BD</span>
-                    <div><strong>Bases de datos</strong><div class="subject-progress"><span style="width: 24%"></span></div><span class="topics-toggle" aria-expanded="false">Ver temas y enlaces</span></div>
-                  </div>
-                  <div class="topic-dots">
-                    <span class="topic-dot is-complete">1</span><span class="topic-dot is-complete">2</span><span class="topic-dot is-progress">3</span><span class="topic-dot">4</span><span class="topic-dot">5</span><span class="topic-dot">6</span><span class="topic-dot">7</span><span class="topic-dot">8</span><span class="topic-dot">9</span><span class="topic-dot">10</span>
-                  </div>
-                  <div class="work-counts">
-                    <span class="counter"><span>Tests</span><strong>3/10</strong><span class="counter-arrow">›</span></span>
-                    <span class="counter"><span>Actividades</span><strong>1/3</strong><span class="counter-arrow">›</span></span>
-                  </div>
-                </article>
+              <div>
+                <dt>Entregas</dt>
+                <dd>Todas las fechas de entrega ordenadas, con lo que vale cada una. Las que ya pasaron se ven apagadas.</dd>
               </div>
-            </div>
-            <ul class="guide-points">
-              <li><strong>Relleno:</strong> tema completado. Pulsa el número para completarlo o quitarlo.</li>
-              <li><strong>Medio relleno:</strong> tema en progreso, has estudiado alguna de sus semanas.</li>
-              <li>Tests y actividades se marcan en Entregas: pulsa su contador para ir directo.</li>
-            </ul>
-            <p class="guide-example-label">
-              Pulsa <strong>«Ver temas y enlaces»</strong> para desplegar la lista de temas, con enlaces al tema en Campus
-              y a su resumen:
-            </p>
-            <div class="guide-example" inert aria-hidden="true">
-              <div class="curriculum-subject guide-curriculum" data-subject="bases-datos">
-                <div class="curriculum-topic">
-                  <span class="topic-check is-complete">✓</span>
-                  <div class="curriculum-topic-copy"><strong>Tema 1 · Sistemas de almacenamiento de la información</strong><span>Semanas 3–4</span></div>
-                  <div class="topic-links"><span class="campus-link">Tema en Campus ↗</span><span>Resumen ↗</span></div>
-                </div>
-                <div class="curriculum-topic">
-                  <span class="topic-check is-progress">✓</span>
-                  <div class="curriculum-topic-copy"><strong>Tema 2 · Diseño conceptual de base de datos</strong><span>Semanas 5–7 · <span class="topic-progress-badge">En progreso</span></span></div>
-                  <div class="topic-links"><span class="campus-link">Tema en Campus ↗</span><span>Resumen ↗</span></div>
-                </div>
-                <div class="curriculum-topic">
-                  <span class="topic-check">✓</span>
-                  <div class="curriculum-topic-copy"><strong>Tema 3 · Modelo lógico relacional</strong><span>Semanas 8–10</span></div>
-                  <div class="topic-links"><span class="campus-link">Tema en Campus ↗</span><span>Resumen ↗</span></div>
-                </div>
+              <div>
+                <dt>Progreso</dt>
+                <dd>
+                  Cuánto llevas de cada asignatura. Pulsa «Ver temas y enlaces» para ver el temario, con enlaces al tema
+                  en Campus y a su resumen. Al final está el botón para guardar tu progreso.
+                </dd>
               </div>
-            </div>
-            </div>
-            <ul class="guide-points">
-              <li>La casilla y el número de arriba son lo mismo: marca donde te resulte más cómodo.</li>
-            </ul>
+            </dl>
           </section>
 
           <section class="guide-section guide-section-save">
-            <h2><span>4</span>Cómo no perder tu progreso</h2>
+            <h2><span>5</span>Cómo no perder tu progreso</h2>
             <p>
-              Tu progreso se guarda solo, pero <strong>únicamente en este navegador</strong>. En otro móvil u ordenador,
-              o en modo incógnito, empezará vacío. Para tener una copia, ve al final de <strong>Progreso</strong> y pulsa este
-              botón:
+              Se guarda solo, pero <strong>únicamente en este navegador</strong>. En otro móvil u ordenador, o en modo
+              incógnito, empezará vacío. Para tener una copia, ve al final de <strong>Progreso</strong> y pulsa:
             </p>
             <div class="guide-example guide-example-inline" inert aria-hidden="true">
               <span class="button primary">Copiar enlace con mi progreso</span>
             </div>
             <p>
-              Te copia un enlace que guarda tu progreso de ese momento. Guárdalo donde quieras (Favoritos, una nota, un
-              correo…) y, cuando avances, vuelve a copiarlo. Al abrirlo en cualquier navegador recuperas tu progreso.
+              Guarda ese enlace donde quieras (Favoritos, una nota, un correo…) y vuelve a copiarlo cuando avances. Al
+              abrirlo en cualquier navegador recuperas tu progreso.
             </p>
-            <p>Si abres el enlace en un navegador que ya tiene otro progreso distinto, verás esto:</p>
+            <p>Si ese navegador ya tenía otro progreso, te preguntará cuál usar:</p>
             <div class="guide-example" inert aria-hidden="true">
               <div class="guide-dialog dialog-panel">
                 <h2>¿Qué progreso quieres usar?</h2>
