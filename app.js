@@ -603,14 +603,14 @@ function renderTimeline() {
     return section;
   };
 
-  // 1) La semana actual, completa, arriba del todo.
+  // 1) Lo que falta de semanas anteriores (solo si falta algo), antes que nada.
+  const pending = createPendingWeeksBox(currentWeek, visibleSubjects);
+  if (pending) weeksTimeline.append(pending);
+
+  // 2) La semana actual, completa.
   const current = buildWeek(currentWeek);
   current.id = "semana-actual";
   weeksTimeline.append(current);
-
-  // 2) Lo que falta de semanas anteriores (solo si falta algo).
-  const pending = createPendingWeeksBox(currentWeek, visibleSubjects);
-  if (pending) weeksTimeline.append(pending);
 
   // 3) Todas las semanas en orden; la actual, solo como referencia para no repetirla.
   const allHeading = document.createElement("h2");
