@@ -498,51 +498,6 @@ h1 {
   scroll-margin-top: var(--sticky-header-offset);
 }
 
-.past-weeks {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: rgb(255 255 255 / 55%);
-}
-
-.past-weeks > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 22px;
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 650;
-  list-style: none;
-}
-
-.past-weeks > summary::-webkit-details-marker {
-  display: none;
-}
-
-.past-weeks > summary::after {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--soft);
-  color: var(--ink-soft);
-  content: "+";
-  font-size: 17px;
-}
-
-.past-weeks[open] > summary::after {
-  content: "−";
-}
-
-.past-weeks-list {
-  display: grid;
-  gap: 30px;
-  padding: 8px 18px 22px;
-}
-
 .week-section.is-past {
   opacity: .75;
 }
@@ -1412,6 +1367,123 @@ h1 {
 
 .share-state.is-error {
   color: var(--red);
+}
+
+/* ───────── Pendientes y lista de semanas ───────── */
+
+.weeks-pending {
+  margin: 24px 0 0;
+  padding: 20px 22px;
+  border: 1px solid color-mix(in srgb, #d97706 30%, white);
+  border-radius: var(--radius-lg);
+  background: #fffaf0;
+}
+
+.weeks-pending h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.weeks-pending p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.weeks-pending ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weeks-pending li button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  transition: border-color 140ms ease;
+}
+
+.weeks-pending li button:hover {
+  border-color: var(--subject, var(--blue));
+}
+
+.weeks-pending .subject-code {
+  width: 28px;
+  height: 22px;
+  font-size: 10px;
+}
+
+.weeks-pending-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-soft);
+}
+
+.weeks-pending-go {
+  color: var(--blue-deep);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.weeks-pending-more {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--blue-deep);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.weeks-all-heading {
+  margin: 40px 0 -6px;
+  padding: 0 4px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.week-ref {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px 18px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+}
+
+.week-ref strong {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.week-ref .current-label {
+  margin: 0;
+}
+
+.week-ref-link {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--blue-deep);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
 }
 
 /* ───────── Para hacer esta semana ───────── */
@@ -2399,9 +2471,6 @@ h1 {
     font-size: 24px;
   }
 
-  .past-weeks-list {
-    padding: 6px 10px 16px;
-  }
 
   [data-view-panel="weeks"] {
     padding-bottom: 150px;

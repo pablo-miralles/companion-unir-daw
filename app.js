@@ -46,7 +46,7 @@ let importedStateFromUrl = Boolean(stateFromUrl) && !pendingUrlState;
 let state = importedStateFromUrl ? stateFromUrl : localStateAtStart;
 let currentRenderedWeek = null;
 let selectedWeeksSubject = "all";
-let pastWeeksOpen = false;
+let pendingWeeksExpanded = false;
 // Progreso incluye el temario: asignaturas desplegadas y búsqueda de temas.
 const expandedSubjects = new Set();
 let progressQuery = "";
@@ -507,27 +507,13 @@ function renderTimeline() {
   currentRenderedWeek = JSON.stringify(subjectWeeks);
   weeksTimeline.replaceChildren();
 
-  // Las semanas ya pasadas van recogidas en un acordeón (cerrado salvo que el usuario lo abra).
-  const pastWeeks = document.createElement("details");
-  pastWeeks.className = "past-weeks";
-  pastWeeks.open = pastWeeksOpen;
-  pastWeeks.addEventListener("toggle", () => {
-    pastWeeksOpen = pastWeeks.open;
-  });
-  const pastSummary = document.createElement("summary");
-  const pastList = document.createElement("div");
-  pastList.className = "past-weeks-list";
-  pastWeeks.append(pastSummary, pastList);
-  let pastCount = 0;
-
-  for (let week = 1; week <= 32; week += 1) {
+  const buildWeek = (week) => {
     const dateGroups = getWeekDateGroups(week, visibleSubjects);
     const currentSubjects = visibleSubjects.filter((subject) => subjectWeeks[subject.id] === week);
     const section = document.createElement("section");
     const isPast = week < currentWeek;
     const isCurrent = currentSubjects.length > 0;
     section.className = `week-section${isPast ? " is-past" : ""}${isCurrent ? " is-current" : ""}`;
-    section.id = week === currentWeek ? "semana-actual" : `semana-${week}`;
     section.dataset.week = String(week);
 
     const meta = document.createElement("div");
@@ -614,18 +600,116 @@ function renderTimeline() {
     if (todo) content.append(todo);
 
     section.append(meta, content);
-    if (isPast) {
-      pastList.append(section);
-      pastCount += 1;
-    } else {
-      weeksTimeline.append(section);
-    }
-  }
+    return section;
+  };
 
-  if (pastCount > 0) {
-    pastSummary.textContent = `Semanas anteriores (${pastCount})`;
-    weeksTimeline.prepend(pastWeeks);
+  // 1) La semana actual, completa, arriba del todo.
+  const current = buildWeek(currentWeek);
+  current.id = "semana-actual";
+  weeksTimeline.append(current);
+
+  // 2) Lo que falta de semanas anteriores (solo si falta algo).
+  const pending = createPendingWeeksBox(currentWeek, visibleSubjects);
+  if (pending) weeksTimeline.append(pending);
+
+  // 3) Todas las semanas en orden; la actual, solo como referencia para no repetirla.
+  const allHeading = document.createElement("h2");
+  allHeading.className = "weeks-all-heading";
+  allHeading.textContent = "Todas las semanas";
+  weeksTimeline.append(allHeading);
+  for (let week = 1; week <= 32; week += 1) {
+    if (week === currentWeek) {
+      const ref = document.createElement("div");
+      ref.className = "week-ref";
+      ref.id = `semana-${week}`;
+      const label = document.createElement("strong");
+      label.textContent = `Semana ${week}`;
+      const tag = document.createElement("span");
+      tag.className = "current-label";
+      tag.textContent = "Ahora";
+      const back = document.createElement("button");
+      back.type = "button";
+      back.className = "week-ref-link";
+      back.dataset.scrollWeek = "actual";
+      back.textContent = "Es la semana actual · ver arriba ↑";
+      ref.append(label, tag, back);
+      weeksTimeline.append(ref);
+      continue;
+    }
+    const section = buildWeek(week);
+    section.id = `semana-${week}`;
+    weeksTimeline.append(section);
   }
+}
+
+// Bloques de semanas pasadas sin marcar como estudiados (y cuyo tema no está completado).
+function getPendingStudyBlocks(currentWeek, subjects) {
+  const subjectIds = new Set(subjects.map((subject) => subject.id));
+  const blocks = [];
+  for (let week = 1; week < currentWeek; week += 1) {
+    getWeekItems(week)
+      .filter(({ subject }) => subjectIds.has(subject.id))
+      .forEach((item) => {
+        if (isWeekStudied(item.subject.id, week)) return;
+        if (getTopicStatus(item.subject.id, item.material.number) === "done") return;
+        blocks.push(item);
+      });
+  }
+  return blocks;
+}
+
+function createPendingWeeksBox(currentWeek, subjects) {
+  const blocks = getPendingStudyBlocks(currentWeek, subjects);
+  if (blocks.length === 0) return null;
+  const box = document.createElement("aside");
+  box.className = "weeks-pending";
+  const title = document.createElement("h2");
+  title.textContent =
+    blocks.length === 1
+      ? "Te falta 1 bloque de semanas anteriores"
+      : `Te faltan ${blocks.length} bloques de semanas anteriores`;
+  const hint = document.createElement("p");
+  hint.textContent = "Márcalos como «¿Estudiado?» cuando los repases y desaparecerán de aquí.";
+  const list = document.createElement("ul");
+  const limit = pendingWeeksExpanded ? blocks.length : 6;
+  blocks.slice(0, limit).forEach(({ subject, week, heading }) => {
+    const item = document.createElement("li");
+    item.dataset.subject = subject.id;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.scrollWeek = String(week);
+    const code = document.createElement("span");
+    code.className = "subject-code";
+    code.textContent = subject.short;
+    const text = document.createElement("span");
+    text.className = "weeks-pending-text";
+    const when = document.createElement("strong");
+    when.textContent = `Semana ${week}`;
+    text.append(when, document.createTextNode(` · ${heading}`));
+    const go = document.createElement("span");
+    go.className = "weeks-pending-go";
+    go.textContent = "Ir →";
+    button.append(code, text, go);
+    item.append(button);
+    list.append(item);
+  });
+  box.append(title, hint, list);
+  if (blocks.length > 6) {
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "weeks-pending-more";
+    more.dataset.togglePending = "1";
+    more.textContent = pendingWeeksExpanded ? "Ver menos" : `Ver los ${blocks.length - 6} restantes`;
+    box.append(more);
+  }
+  return box;
+}
+
+function scrollToWeek(target) {
+  const element = document.querySelector(target === "actual" ? "#semana-actual" : `#semana-${target}`);
+  if (!element) return;
+  const headerHeight = document.querySelector(".site-header")?.getBoundingClientRect().height || 0;
+  window.scrollTo({ top: Math.max(0, window.scrollY + element.getBoundingClientRect().top - headerHeight - 16), behavior: "smooth" });
 }
 
 function createWeekSubject({ subject, week, heading, subtopics, material, scheduleTopicNumber, dateRange }) {
@@ -1862,6 +1946,17 @@ function celebrateIfMarking(button) {
 }
 
 weeksTimeline.addEventListener("click", (event) => {
+  const jump = event.target.closest("button[data-scroll-week]");
+  if (jump) {
+    scrollToWeek(jump.dataset.scrollWeek);
+    return;
+  }
+  const morePending = event.target.closest("button[data-toggle-pending]");
+  if (morePending) {
+    pendingWeeksExpanded = !pendingWeeksExpanded;
+    renderTimeline();
+    return;
+  }
   const control = event.target.closest("button[data-deliverable]");
   if (!control) return;
   celebrateIfMarking(control);
