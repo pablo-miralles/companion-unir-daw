@@ -13,6 +13,8 @@ const SUMMARY_SLUGS = {
   programacion: "prog",
   "entornos-desarrollo": "ed",
   "sistemas-informaticos": "si",
+  ingles: "ing",
+  empleabilidad: "ipe",
 };
 
 const weeksTimeline = document.querySelector("#weeksTimeline");
